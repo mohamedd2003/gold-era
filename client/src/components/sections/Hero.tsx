@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { motion } from "framer-motion";
+import { motion, type Variants } from "framer-motion";
 import {
   Check,
   Clock,
@@ -18,12 +18,16 @@ import {
 } from "lucide-react";
 import cloudIcon from "@/app/icon.png";
 
-const fadeUp = {
+const fadeUp: Variants = {
   hidden: { opacity: 0, y: 24 },
   visible: (delay = 0) => ({
     opacity: 1,
     y: 0,
-    transition: { duration: 0.55, delay, ease: [0.22, 1, 0.36, 1] },
+    transition: {
+      duration: 0.55,
+      delay,
+      ease: [0.22, 1, 0.36, 1] as const,
+    },
   }),
 };
 
@@ -134,7 +138,7 @@ export function Hero() {
         <motion.div
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, delay: 0.4, ease: [0.22, 1, 0.36, 1] }}
+          transition={{ duration: 0.7, delay: 0.4, ease: [0.22, 1, 0.36, 1] as const }}
           className="relative mx-auto mt-12 max-w-4xl sm:mt-16"
         >
           <div className="pointer-events-none absolute left-1/2 top-8 size-40 -translate-x-1/2 rounded-full bg-primary/20 blur-3xl sm:size-64" />
