@@ -17,6 +17,7 @@ function createTransport() {
     host: env.mail.host,
     port: env.mail.port,
     secure: env.mail.port === 465,
+    family: 4,
     connectionTimeout: 8_000,
     greetingTimeout: 8_000,
     socketTimeout: 8_000,
