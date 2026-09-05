@@ -24,7 +24,7 @@ export const env = {
   port: number("PORT", 5000),
   databaseUrl: required("DATABASE_URL"),
   jwt: {
-    secret: required("GOLD_ERA", "GOLD_ERA"),
+    secret: required("JWT_SECRET", "GOLD_ERA"),
     expiresIn: process.env.JWT_EXPIRES_IN ?? "7d",
   },
   otp: {
