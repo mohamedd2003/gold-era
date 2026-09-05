@@ -18,11 +18,18 @@ app.use(
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// 2. Health check
+// 2. Root + health check
+app.get("/", (_req: Request, res: Response) => {
+  res.status(200).json({
+    success: true,
+    message: "Server is running",
+  });
+});
+
 app.get("/health", (_req: Request, res: Response) => {
   res.status(200).json({
     success: true,
-    message: "API is up and running",
+    message: "API is healthy and running",
   });
 });
 
