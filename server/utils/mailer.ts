@@ -17,6 +17,9 @@ function createTransport() {
     host: env.mail.host,
     port: env.mail.port,
     secure: env.mail.port === 465,
+    connectionTimeout: 8_000,
+    greetingTimeout: 8_000,
+    socketTimeout: 8_000,
     auth: {
       user: env.mail.user,
       pass: env.mail.pass,
@@ -111,13 +114,22 @@ async function send(message: MailMessage): Promise<void> {
   }
 
   const transporter = createTransport();
-  await transporter.sendMail({
-    from: env.mail.from,
-    to: message.to,
-    subject: message.subject,
-    text: message.text,
-    html: message.html,
-  });
+  try {
+    await transporter.sendMail({
+      from: env.mail.from,
+      to: message.to,
+      subject: message.subject,
+      text: message.text,
+      html: message.html,
+    });
+  } catch (error) {
+    // Registration must not fail after the user row is already saved.
+    // eslint-disable-next-line no-console
+    console.error("[mailer] Failed to send email:", error);
+    console.log(`[mailer] Fallback preview for ${message.to}:\n${message.text}`);
+  } finally {
+    transporter.close();
+  }
 }
 
 export async function sendVerificationEmail(
