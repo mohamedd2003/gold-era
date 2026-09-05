@@ -7,7 +7,8 @@ import logo from "@/app/icon.png";
 import { logoutAction } from "./logout.action";
 
 export const metadata: Metadata = {
-  title: "Dashboard — Gold Cloud",
+  title: "Dashboard",
+  robots: { index: false, follow: false },
 };
 
 const API_URL =

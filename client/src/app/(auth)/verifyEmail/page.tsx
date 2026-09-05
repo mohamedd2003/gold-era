@@ -6,8 +6,9 @@ import logo from "@/app/icon.png";
 import { VerifyEmailForm } from "@/features/Auth/verifyEmail/ui/VerifyEmailForm";
 
 export const metadata: Metadata = {
-  title: "Verify email — Gold Cloud",
+  title: "Verify email",
   description: "Verify your email to activate your Gold Cloud account.",
+  robots: { index: false, follow: false },
 };
 
 const highlights = [
