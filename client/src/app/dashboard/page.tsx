@@ -4,6 +4,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { BadgeCheck, LogOut, Mail, Shield, User } from "lucide-react";
 import logo from "@/app/icon.png";
+import { ThemeToggle } from "@/components/layout/ThemeToggle";
 import { logoutAction } from "./logout.action";
 
 export const metadata: Metadata = {
@@ -56,7 +57,7 @@ export default async function DashboardPage() {
   const isAdmin = role === "ADMIN";
 
   return (
-    <main className="min-h-screen bg-linear-to-b from-blue-50/70 via-indigo-50/30 to-background">
+    <main className="min-h-screen bg-linear-to-b from-blue-50/70 via-indigo-50/30 to-background dark:from-primary/10 dark:via-background dark:to-background">
       <header className="border-b border-border/70 bg-background/80 backdrop-blur-xl">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 sm:px-6">
           <div className="flex items-center gap-2.5">
@@ -73,6 +74,7 @@ export default async function DashboardPage() {
           </div>
 
           <div className="flex items-center gap-3">
+            <ThemeToggle />
             <span
               className={
                 "inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold " +
@@ -145,7 +147,7 @@ function InfoCard({
   highlight?: boolean;
 }) {
   return (
-    <div className="rounded-2xl border border-border/70 bg-background p-5 shadow-sm">
+    <div className="rounded-2xl border border-border/70 bg-card p-5 shadow-sm">
       <div className="mb-3 flex size-10 items-center justify-center rounded-lg bg-accent text-primary">
         <Icon className="size-5" />
       </div>
@@ -155,7 +157,7 @@ function InfoCard({
       <p
         className={
           "mt-1 truncate text-sm font-semibold " +
-          (highlight ? "text-emerald-600" : "text-foreground")
+          (highlight ? "text-emerald-600 dark:text-emerald-400" : "text-foreground")
         }
       >
         {value}

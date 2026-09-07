@@ -55,7 +55,7 @@ const sidebarItems = [
 
 export function Hero() {
   return (
-    <section className="relative overflow-hidden bg-linear-to-b from-blue-50/80 via-indigo-50/40 to-background">
+    <section className="relative overflow-hidden bg-linear-to-b from-blue-50/80 via-indigo-50/40 to-background dark:from-primary/15 dark:via-primary/5 dark:to-background">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(37,99,235,0.14),transparent_60%)]" />
 
       <div className="relative mx-auto max-w-7xl px-4 pb-16 pt-28 sm:px-6 sm:pb-20 sm:pt-40 lg:px-8 lg:pb-28">
@@ -154,7 +154,7 @@ export function Hero() {
             />
           </div>
 
-          <div className="relative overflow-hidden rounded-xl border border-white/40 bg-white/80 shadow-2xl backdrop-blur-md sm:rounded-2xl">
+          <div className="relative overflow-hidden rounded-xl border border-border/70 bg-card/90 shadow-2xl backdrop-blur-md sm:rounded-2xl">
             <div className="flex sm:min-h-95">
               <aside className="hidden w-44 shrink-0 flex-col border-r border-border/70 bg-secondary/60 p-4 sm:flex">
                 <p className="mb-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">

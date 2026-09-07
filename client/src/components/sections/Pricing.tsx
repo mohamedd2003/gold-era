@@ -63,7 +63,7 @@ export function Pricing() {
               viewport={{ once: true, amount: 0.25 }}
               transition={{ duration: 0.45, delay: index * 0.08 }}
               className={cn(
-                "relative flex flex-col rounded-2xl border bg-background p-5 shadow-sm sm:p-6",
+                "relative flex flex-col rounded-2xl border bg-card p-5 shadow-sm sm:p-6",
                 plan.featured
                   ? "mt-3 border-primary shadow-xl shadow-primary/10 lg:mt-0"
                   : "border-border"

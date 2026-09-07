@@ -47,7 +47,7 @@ export function Features() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, amount: 0.3 }}
               transition={{ duration: 0.45, delay: index * 0.08 }}
-              className="rounded-2xl border border-border/70 bg-background p-5 shadow-sm sm:p-6"
+              className="rounded-2xl border border-border/70 bg-card p-5 shadow-sm sm:p-6"
             >
               <div className="mb-4 flex size-11 items-center justify-center rounded-lg bg-accent text-primary">
                 <Icon className="size-5" />

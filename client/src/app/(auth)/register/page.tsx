@@ -3,6 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Cloud, FolderLock, ShieldCheck, Sparkles, Users } from "lucide-react";
 import logo from "@/app/icon.png";
+import { ThemeToggle } from "@/components/layout/ThemeToggle";
 import { RegisterForm } from "@/features/Auth/Register/ui/RegisterForm";
 
 export const metadata: Metadata = {
@@ -98,6 +99,9 @@ export default function RegisterPage() {
 
       {/* Form panel */}
       <section className="relative flex flex-col items-center justify-center bg-background px-5 py-10 sm:px-8">
+        <div className="absolute right-4 top-4 sm:right-6 sm:top-6">
+          <ThemeToggle />
+        </div>
         {/* Mobile brand */}
         <Link href="/" className="mb-8 flex items-center gap-2.5 lg:hidden">
           <Image

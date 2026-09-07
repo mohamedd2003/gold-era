@@ -6,6 +6,7 @@ import Link from "next/link";
 import { Menu, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import logo from "@/app/icon.png";
+import { ThemeToggle } from "@/components/layout/ThemeToggle";
 
 const navLinks = [
   { name: "Features", href: "/#features" },
@@ -79,6 +80,7 @@ export default function Navbar() {
           </div>
 
           <div className="hidden items-center gap-2 md:flex">
+            <ThemeToggle />
             <Link
               href="/login"
               className="inline-flex h-9 items-center rounded-full px-4 text-sm font-semibold text-foreground transition hover:bg-secondary"
@@ -94,6 +96,7 @@ export default function Navbar() {
           </div>
 
           <div className="flex shrink-0 items-center gap-1.5 md:hidden">
+            <ThemeToggle compact />
             {!isMenuOpen && (
               <Link
                 href="/login"

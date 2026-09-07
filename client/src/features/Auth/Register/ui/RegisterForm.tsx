@@ -163,14 +163,14 @@ export function RegisterForm() {
                         key={rule.label}
                         className={cn(
                           "flex items-center gap-2 text-xs transition-colors",
-                          passed ? "text-emerald-600" : "text-muted-foreground"
+                          passed ? "text-emerald-600 dark:text-emerald-400" : "text-muted-foreground"
                         )}
                       >
                         <span
                           className={cn(
                             "flex size-4 shrink-0 items-center justify-center rounded-full",
                             passed
-                              ? "bg-emerald-100 text-emerald-600"
+                              ? "bg-emerald-100 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-400"
                               : "bg-muted text-muted-foreground"
                           )}
                         >

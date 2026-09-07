@@ -20,7 +20,7 @@ const files = [
     title: "Marketing_Plan.pdf",
     meta: "Edited 2h ago by Sarah M.",
     icon: (
-      <span className="flex size-8 items-center justify-center rounded-md bg-red-50 text-[10px] font-bold text-red-600">
+      <span className="flex size-8 items-center justify-center rounded-md bg-red-50 text-[10px] font-bold text-red-600 dark:bg-red-500/15 dark:text-red-400">
         PDF
       </span>
     ),
@@ -29,7 +29,7 @@ const files = [
     title: "Design_System.fig",
     meta: "Edited 5m ago by Mike R.",
     icon: (
-      <span className="flex size-8 items-center justify-center rounded-md bg-zinc-100 text-[10px] font-bold text-zinc-700">
+      <span className="flex size-8 items-center justify-center rounded-md bg-zinc-100 text-[10px] font-bold text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300">
         FIG
       </span>
     ),
@@ -75,7 +75,7 @@ export function Solutions() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, amount: 0.3 }}
               transition={{ duration: 0.55, delay: 0.1 }}
-              className="rounded-2xl border border-white/50 bg-background p-4 shadow-2xl shadow-primary/10 sm:rounded-3xl sm:p-6"
+              className="rounded-2xl border border-border bg-card p-4 shadow-2xl shadow-primary/10 sm:rounded-3xl sm:p-6"
             >
               <div className="mb-5 flex items-center justify-between gap-3 sm:mb-6">
                 <h3 className="min-w-0 truncate font-semibold text-foreground">

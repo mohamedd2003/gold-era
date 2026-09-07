@@ -3,6 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowLeft, Cloud, Home, Search } from "lucide-react";
 import logo from "@/app/icon.png";
+import { ThemeToggle } from "@/components/layout/ThemeToggle";
 
 export const metadata: Metadata = {
   title: "Page not found — Gold Cloud",
@@ -11,9 +12,13 @@ export const metadata: Metadata = {
 
 export default function NotFound() {
   return (
-    <main className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-linear-to-b from-blue-50/80 via-indigo-50/40 to-background px-5 py-16 text-center">
+    <main className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-linear-to-b from-blue-50/80 via-indigo-50/40 to-background px-5 py-16 text-center dark:from-primary/15 dark:via-primary/5 dark:to-background">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(37,99,235,0.14),transparent_60%)]" />
       <div className="pointer-events-none absolute left-1/2 top-1/3 size-72 -translate-x-1/2 rounded-full bg-primary/15 blur-3xl" />
+
+      <div className="absolute right-4 top-4 sm:right-6 sm:top-6">
+        <ThemeToggle />
+      </div>
 
       <div className="relative flex flex-col items-center">
         <Link
