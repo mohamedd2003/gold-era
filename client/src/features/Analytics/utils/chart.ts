@@ -64,30 +64,70 @@ function pad(value: number) {
 }
 
 function historyKey(date: Date, period: StatsPeriod): string {
-  const year = date.getFullYear();
-  const month = pad(date.getMonth() + 1);
-  const day = pad(date.getDate());
-  const hour = pad(date.getHours());
+  const year = date.getUTCFullYear();
+  const month = pad(date.getUTCMonth() + 1);
+  const day = pad(date.getUTCDate());
+  const hour = pad(date.getUTCHours());
   if (period === "hourly") return `${year}-${month}-${day} ${hour}:00`;
   if (period === "monthly") return `${year}-${month}`;
   if (period === "yearly") return String(year);
   return `${year}-${month}-${day}`;
 }
 
-/** Fill empty buckets so the selected period is a continuous series. */
+/** Server DATE_FORMAT keys are UTC; accept a few wire formats. */
+export function normalizeHistoryKey(raw: string, period: StatsPeriod): string {
+  const value = raw.trim();
+  if (period === "hourly") {
+    const match = value.match(/^(\d{4}-\d{2}-\d{2})[ T](\d{2})/);
+    if (match) return `${match[1]} ${match[2]}:00`;
+  }
+  if (period === "monthly") {
+    const match = value.match(/^(\d{4}-\d{2})/);
+    if (match) return match[1];
+  }
+  if (period === "yearly") {
+    const match = value.match(/^(\d{4})/);
+    if (match) return match[1];
+  }
+  const match = value.match(/^(\d{4}-\d{2}-\d{2})/);
+  return match ? match[1] : value;
+}
+
+function parseHistoryDate(value: string, period: StatsPeriod): Date {
+  const key = normalizeHistoryKey(value, period);
+  if (period === "hourly") {
+    const [datePart, timePart = "00:00"] = key.split(" ");
+    const [year, month, day] = datePart.split("-").map(Number);
+    const [hour] = timePart.split(":").map(Number);
+    return new Date(Date.UTC(year, (month ?? 1) - 1, day ?? 1, hour ?? 0));
+  }
+  if (period === "monthly") {
+    const [year, month] = key.split("-").map(Number);
+    return new Date(Date.UTC(year, (month ?? 1) - 1, 1));
+  }
+  if (period === "yearly") {
+    return new Date(Date.UTC(Number(key), 0, 1));
+  }
+  const [year, month, day] = key.split("-").map(Number);
+  return new Date(Date.UTC(year, (month ?? 1) - 1, day ?? 1));
+}
+
+/** Fill empty UTC buckets so the selected period is a continuous series. */
 export function fillHistory(
   history: HistoryPoint[],
   period: StatsPeriod
 ): HistoryPoint[] {
-  const byKey = new Map(history.map((point) => [point.date.trim(), point]));
+  const byKey = new Map(
+    history.map((point) => [normalizeHistoryKey(point.date, period), point])
+  );
   const points: HistoryPoint[] = [];
   const cursor = new Date();
 
   if (period === "hourly") {
-    cursor.setMinutes(0, 0, 0);
+    cursor.setUTCMinutes(0, 0, 0);
     for (let offset = 6; offset >= 0; offset -= 1) {
       const date = new Date(cursor);
-      date.setHours(cursor.getHours() - offset);
+      date.setUTCHours(cursor.getUTCHours() - offset);
       const key = historyKey(date, period);
       points.push(byKey.get(key) ?? { date: key, count: 0, bytes: 0 });
     }
@@ -95,11 +135,11 @@ export function fillHistory(
   }
 
   if (period === "monthly") {
-    cursor.setDate(1);
-    cursor.setHours(0, 0, 0, 0);
+    cursor.setUTCDate(1);
+    cursor.setUTCHours(0, 0, 0, 0);
     for (let offset = 11; offset >= 0; offset -= 1) {
       const date = new Date(cursor);
-      date.setMonth(cursor.getMonth() - offset);
+      date.setUTCMonth(cursor.getUTCMonth() - offset);
       const key = historyKey(date, period);
       points.push(byKey.get(key) ?? { date: key, count: 0, bytes: 0 });
     }
@@ -107,21 +147,21 @@ export function fillHistory(
   }
 
   if (period === "yearly") {
-    cursor.setMonth(0, 1);
-    cursor.setHours(0, 0, 0, 0);
+    cursor.setUTCMonth(0, 1);
+    cursor.setUTCHours(0, 0, 0, 0);
     for (let offset = 4; offset >= 0; offset -= 1) {
       const date = new Date(cursor);
-      date.setFullYear(cursor.getFullYear() - offset);
+      date.setUTCFullYear(cursor.getUTCFullYear() - offset);
       const key = historyKey(date, period);
       points.push(byKey.get(key) ?? { date: key, count: 0, bytes: 0 });
     }
     return points;
   }
 
-  cursor.setHours(0, 0, 0, 0);
+  cursor.setUTCHours(0, 0, 0, 0);
   for (let offset = 6; offset >= 0; offset -= 1) {
     const date = new Date(cursor);
-    date.setDate(cursor.getDate() - offset);
+    date.setUTCDate(cursor.getUTCDate() - offset);
     const key = historyKey(date, "daily");
     points.push(byKey.get(key) ?? { date: key, count: 0, bytes: 0 });
   }
@@ -129,19 +169,18 @@ export function fillHistory(
 }
 
 export function formatHistoryLabel(value: string, period: StatsPeriod): string {
+  const date = parseHistoryDate(value, period);
   if (period === "hourly") {
-    const hour = Number(value.slice(11, 13));
+    const hour = date.getHours();
     const suffix = hour >= 12 ? "PM" : "AM";
     const hour12 = hour % 12 || 12;
     return `${hour12} ${suffix}`;
   }
   if (period === "monthly") {
-    const [year, month] = value.split("-");
-    return `${MONTHS[Number(month) - 1]} ${year}`;
+    return `${MONTHS[date.getUTCMonth()]} ${date.getUTCFullYear()}`;
   }
-  if (period === "yearly") return value;
-  const [, month, day] = value.split("-");
-  return `${MONTHS[Number(month) - 1]} ${Number(day)}`;
+  if (period === "yearly") return String(date.getUTCFullYear());
+  return `${MONTHS[date.getUTCMonth()]} ${date.getUTCDate()}`;
 }
 
 export function baseOptions(isDark: boolean): ApexOptions {

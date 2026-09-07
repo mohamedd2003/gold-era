@@ -64,6 +64,8 @@ export function AnalyticsDashboard() {
 }
 
 function Charts({ stats, isDark }: { stats: UserStats; isDark: boolean }) {
+  const [period, setPeriod] = useState<StatsPeriod>("daily");
+  const historyQuery = useUploadHistory(period);
   const types = groupTypes(stats.fileTypes);
   const emptyTypes = types.length === 0;
 
@@ -83,7 +85,17 @@ function Charts({ stats, isDark }: { stats: UserStats; isDark: boolean }) {
       </div>
 
       <div className="mt-4 grid gap-4 lg:grid-cols-2">
-        <PeriodTimeChart title="Total uploaded files" kind="bar" isDark={isDark} />
+        <TimeSeriesChart
+          title="Total uploaded files"
+          kind="bar"
+          isDark={isDark}
+          period={period}
+          onPeriodChange={setPeriod}
+          points={historyQuery.data?.history}
+          isPending={historyQuery.isPending}
+          isError={historyQuery.isError}
+          onRetry={() => historyQuery.refetch()}
+        />
 
         <ChartCard title="Storage usage" hint="Space used by file type">
           {emptyTypes ? (
@@ -118,35 +130,18 @@ function Charts({ stats, isDark }: { stats: UserStats; isDark: boolean }) {
           )}
         </ChartCard>
 
-        <PeriodTimeChart title="Upload history" kind="area" isDark={isDark} />
+        <TimeSeriesChart
+          title="Upload history"
+          kind="area"
+          isDark={isDark}
+          period={period}
+          onPeriodChange={setPeriod}
+          points={historyQuery.data?.history}
+          isPending={historyQuery.isPending}
+          isError={historyQuery.isError}
+          onRetry={() => historyQuery.refetch()}
+        />
       </div>
     </>
-  );
-}
-
-function PeriodTimeChart({
-  title,
-  kind,
-  isDark,
-}: {
-  title: string;
-  kind: "bar" | "area";
-  isDark: boolean;
-}) {
-  const [period, setPeriod] = useState<StatsPeriod>("daily");
-  const { data, isPending, isError, refetch } = useUploadHistory(period);
-
-  return (
-    <TimeSeriesChart
-      title={title}
-      kind={kind}
-      isDark={isDark}
-      period={period}
-      onPeriodChange={setPeriod}
-      points={data?.history}
-      isPending={isPending}
-      isError={isError}
-      onRetry={() => refetch()}
-    />
   );
 }

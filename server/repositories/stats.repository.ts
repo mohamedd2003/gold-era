@@ -77,14 +77,16 @@ export class StatsRepository extends BaseRepository {
             ? Prisma.sql`DATE_FORMAT(createdAt, '%Y')`
             : Prisma.sql`DATE_FORMAT(createdAt, '%Y-%m-%d')`;
 
+    // Prisma stores DateTime as UTC digits in DATETIME. Bucket and clip
+    // against UTC so the series matches the client fillHistory keys.
     const since =
       period === "hourly"
-        ? Prisma.sql`NOW() - INTERVAL 7 HOUR`
+        ? Prisma.sql`UTC_TIMESTAMP() - INTERVAL 7 HOUR`
         : period === "monthly"
-          ? Prisma.sql`NOW() - INTERVAL 12 MONTH`
+          ? Prisma.sql`UTC_TIMESTAMP() - INTERVAL 12 MONTH`
           : period === "yearly"
-            ? Prisma.sql`NOW() - INTERVAL 5 YEAR`
-            : Prisma.sql`NOW() - INTERVAL 7 DAY`;
+            ? Prisma.sql`UTC_TIMESTAMP() - INTERVAL 5 YEAR`
+            : Prisma.sql`UTC_TIMESTAMP() - INTERVAL 7 DAY`;
 
     const rows = await this.prisma.$queryRaw<
       Array<{ date: Date | string; count: bigint; bytes: bigint | null }>
@@ -105,10 +107,7 @@ export class StatsRepository extends BaseRepository {
     );
 
     return rows.map((row) => ({
-      date:
-        row.date instanceof Date
-          ? row.date.toISOString().slice(0, 13).replace("T", " ")
-          : String(row.date),
+      date: normalizeHistoryDate(row.date, period),
       count: Number(row.count),
       bytes: Number(row.bytes ?? 0),
     }));
@@ -128,6 +127,43 @@ export class StatsRepository extends BaseRepository {
       },
     });
   }
+}
+
+function pad(value: number) {
+  return String(value).padStart(2, "0");
+}
+
+/** Keep bucket keys in the same UTC format the charts fill against. */
+function normalizeHistoryDate(
+  value: Date | string,
+  period: "hourly" | "daily" | "monthly" | "yearly"
+): string {
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    if (period === "hourly") {
+      const match = trimmed.match(/^(\d{4}-\d{2}-\d{2})[ T](\d{2})/);
+      if (match) return `${match[1]} ${match[2]}:00`;
+    }
+    if (period === "monthly") {
+      const match = trimmed.match(/^(\d{4}-\d{2})/);
+      if (match) return match[1];
+    }
+    if (period === "yearly") {
+      const match = trimmed.match(/^(\d{4})/);
+      if (match) return match[1];
+    }
+    const match = trimmed.match(/^(\d{4}-\d{2}-\d{2})/);
+    return match ? match[1] : trimmed;
+  }
+
+  const year = value.getUTCFullYear();
+  const month = pad(value.getUTCMonth() + 1);
+  const day = pad(value.getUTCDate());
+  const hour = pad(value.getUTCHours());
+  if (period === "hourly") return `${year}-${month}-${day} ${hour}:00`;
+  if (period === "monthly") return `${year}-${month}`;
+  if (period === "yearly") return String(year);
+  return `${year}-${month}-${day}`;
 }
 
 export const statsRepository = new StatsRepository();

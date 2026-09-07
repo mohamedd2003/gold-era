@@ -149,6 +149,7 @@ export function TimeSeriesChart({
                 ? { curve: "smooth", width: 2 }
                 : { show: true, width: 0, curve: "smooth" },
             xaxis: {
+              type: "category",
               categories: labels,
               labels: { rotate: -45, style: { colors: theme.muted } },
               axisBorder: { show: false },

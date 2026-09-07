@@ -59,7 +59,7 @@ export class StatsService {
         this.repo.countUsers(),
         this.repo.countFiles(),
         this.repo.totalStorage(),
-        this.repo.mimetypeDistribution({}, 5),
+        this.repo.mimetypeDistribution(),
         this.repo.recentUploads(10),
       ]);
 
