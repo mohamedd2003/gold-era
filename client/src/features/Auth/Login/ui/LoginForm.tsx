@@ -36,8 +36,9 @@ export function LoginForm() {
 
       if (result.status === "success") {
         toast.success(result.message);
-        router.push(result.redirectTo ?? "/dashboard");
-        router.refresh();
+        // Full reload so the dashboard layout reads the new admin/user cookies
+        // instead of a cached RSC tree from the previous session.
+        window.location.assign(result.redirectTo ?? "/dashboard");
         return;
       }
 

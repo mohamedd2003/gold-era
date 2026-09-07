@@ -3,6 +3,8 @@ import { isAdmin, requireUser } from "@/lib/session";
 import { AdminOverview } from "@/features/Admin/ui/AdminOverview";
 import { UploadFiles } from "@/features/UploadFiles/ui/UploadFiles";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Dashboard",
   robots: { index: false, follow: false },

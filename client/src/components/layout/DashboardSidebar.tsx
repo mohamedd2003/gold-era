@@ -15,8 +15,17 @@ import {
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { isAdminRole, normalizeRole } from "@/lib/role";
 import type { UserRole } from "@/types";
 import { useSidebar } from "@/components/layout/sidebar-context";
+
+function roleFromCookie(): UserRole | null {
+  const row = document.cookie
+    .split("; ")
+    .find((part) => part.startsWith("gold_era_role="));
+  if (!row) return null;
+  return normalizeRole(decodeURIComponent(row.split("=").slice(1).join("=")));
+}
 
 const STORAGE_KEY = "gold-era-sidebar-collapsed";
 
@@ -38,11 +47,25 @@ export function DashboardSidebar({ role }: { role: UserRole }) {
   const pathname = usePathname();
   const { mobileOpen, closeMobile } = useSidebar();
   const [collapsed, setCollapsed] = useState(false);
-  const items = role === "ADMIN" ? adminItems : userItems;
+  const [effectiveRole, setEffectiveRole] = useState<UserRole>(() =>
+    normalizeRole(role)
+  );
+  const admin = isAdminRole(effectiveRole);
+  const items = admin ? adminItems : userItems;
 
   useEffect(() => {
     setCollapsed(localStorage.getItem(STORAGE_KEY) === "1");
   }, []);
+
+  useEffect(() => {
+    const fromServer = normalizeRole(role);
+    if (isAdminRole(fromServer)) {
+      setEffectiveRole("ADMIN");
+      return;
+    }
+    const fromCookie = roleFromCookie();
+    setEffectiveRole(fromCookie === "ADMIN" ? "ADMIN" : "USER");
+  }, [role]);
 
   useEffect(() => {
     if (!mobileOpen) return;
@@ -63,7 +86,7 @@ export function DashboardSidebar({ role }: { role: UserRole }) {
     });
   }
 
-  const label = role === "ADMIN" ? "Administration" : "Library";
+  const label = admin ? "Administration" : "Library";
 
   return (
     <>

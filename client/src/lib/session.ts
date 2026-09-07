@@ -1,15 +1,17 @@
+import { cache } from "react";
 import { cookies } from "next/headers";
 import { notFound, redirect } from "next/navigation";
 import { API_URL } from "@/lib/axios";
+import { isAdminRole, normalizeRole } from "@/lib/role";
 import type { ApiSuccess, User } from "@/types";
 
 export type SessionUser = User;
 
 export function isAdmin(user: User | null): boolean {
-  return user?.role === "ADMIN";
+  return isAdminRole(user?.role);
 }
 
-export async function getSessionUser(): Promise<User | null> {
+export const getSessionUser = cache(async (): Promise<User | null> => {
   const cookieStore = await cookies();
   const token = cookieStore.get("gold_era_token")?.value;
   if (!token) return null;
@@ -23,11 +25,12 @@ export async function getSessionUser(): Promise<User | null> {
     const body = (await res.json().catch(() => null)) as
       | ApiSuccess<User>
       | null;
-    return body?.success ? body.data : null;
+    if (!body?.success || !body.data) return null;
+    return { ...body.data, role: normalizeRole(body.data.role) };
   } catch {
     return null;
   }
-}
+});
 
 /** Signed-in gate for dashboard pages. */
 export async function requireUser(): Promise<User> {

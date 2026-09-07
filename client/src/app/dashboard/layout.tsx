@@ -3,6 +3,8 @@ import { DashboardSidebar } from "@/components/layout/DashboardSidebar";
 import { SidebarProvider } from "@/components/layout/sidebar-context";
 import { requireUser } from "@/lib/session";
 
+export const dynamic = "force-dynamic";
+
 export default async function DashboardLayout({
   children,
 }: {
