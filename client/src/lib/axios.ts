@@ -1,10 +1,19 @@
 import axios from "axios";
 
+function trimUrl(value?: string) {
+  return value?.replace(/\/$/, "") || undefined;
+}
+
 /**
- * Express API base, including `/api/v1`. Must be set on the Vercel project
- * (not only Railway) as `NEXT_PUBLIC_API_URL`, then the app must be redeployed.
+ * Express API base, including `/api/v1`.
+ * Browser / Vercel builds use `NEXT_PUBLIC_API_URL`.
+ * Next.js server code in Docker can override with `INTERNAL_API_URL`
+ * (e.g. http://server:8080/api/v1) so it does not call localhost inside
+ * the container.
  */
-export const API_URL = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "");
+export const API_URL =
+  trimUrl(process.env.INTERNAL_API_URL) ??
+  trimUrl(process.env.NEXT_PUBLIC_API_URL);
 
 export function missingApiUrlMessage() {
   return "NEXT_PUBLIC_API_URL is not set on this deployment. Add it in Vercel → Settings → Environment Variables and redeploy.";

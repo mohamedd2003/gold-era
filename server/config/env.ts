@@ -21,7 +21,7 @@ function number(key: string, fallback: number): number {
 export const env = {
   nodeEnv: process.env.NODE_ENV ?? "development",
   isProduction: (process.env.NODE_ENV ?? "development") === "production",
-  port: number("PORT", 5000),
+  port: number("PORT", 8080),
   databaseUrl: required("DATABASE_URL"),
   jwt: {
     secret: required("JWT_SECRET", "GOLD_ERA"),

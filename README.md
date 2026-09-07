@@ -114,7 +114,7 @@ An admin cannot change their own role or delete their own account.
 | Hard delete (disk + row) | Implemented |
 | Soft delete | Not implemented |
 | Refresh-token rotation | Not implemented (single JWT, 7 days) |
-| Docker Compose | Not shipped in this repo |
+| Docker Compose | Implemented (`docker-compose.yml`) |
 
 ---
 
@@ -193,6 +193,8 @@ gold-era/
 │   ├── .env.example
 │   └── package.json
 │
+├── docker-compose.yml
+├── docker.env.example
 ├── README.md                        # English
 └── README.ar.md                     # Arabic
 ```
@@ -321,6 +323,33 @@ npm run dev
 App: `http://localhost:3000`
 
 Open two terminals. Keep MySQL running. Register → verify the OTP from email (or the server console if SMTP is empty in development) → sign in.
+
+### Docker Compose
+
+Requires **Docker Desktop**. From the repo root:
+
+```bash
+docker compose up --build
+```
+
+| Service | Host URL |
+|---|---|
+| App | `http://localhost:3000` |
+| API | `http://localhost:8080/api/v1` |
+| Health | `http://localhost:8080/health` |
+| MySQL | `localhost:3307` (user/password/db: `gold` / `gold` / `gold_era`) |
+
+Compose starts MySQL, runs `prisma migrate deploy`, then Express and the Next.js production image. Uploads persist in the `uploads` volume.
+
+Optional SMTP / JWT overrides: copy `docker.env.example` to a root `.env` (never commit it). The browser talks to `http://localhost:8080/api/v1`. Next.js inside the client container uses `INTERNAL_API_URL=http://server:8080/api/v1`.
+
+Stop and remove containers:
+
+```bash
+docker compose down
+```
+
+Add `-v` only if you also want to wipe the MySQL and uploads volumes.
 
 ---
 

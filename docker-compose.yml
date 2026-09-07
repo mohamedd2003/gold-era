@@ -1,0 +1,74 @@
+services:
+  mysql:
+    image: mysql:8.0
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: gold_era
+      MYSQL_USER: gold
+      MYSQL_PASSWORD: gold
+      MYSQL_ROOT_PASSWORD: gold
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-ugold", "-pgold"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  server:
+    build:
+      context: ./server
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      NODE_ENV: production
+      PORT: 8080
+      DATABASE_URL: mysql://gold:gold@mysql:3306/gold_era
+      JWT_SECRET: ${JWT_SECRET:-gold-era-docker-dev-secret}
+      JWT_EXPIRES_IN: 7d
+      OTP_EXPIRES_MINUTES: 15
+      UPLOAD_DIR: uploads
+      MAX_FILE_SIZE_MB: 25
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASS: ${SMTP_PASS:-}
+      MAIL_FROM: ${MAIL_FROM:-}
+    volumes:
+      - uploads:/app/uploads
+    depends_on:
+      mysql:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:8080/health').then((r)=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+
+  client:
+    build:
+      context: ./client
+      args:
+        NEXT_PUBLIC_API_URL: http://localhost:8080/api/v1
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      INTERNAL_API_URL: http://server:8080/api/v1
+      NEXT_PUBLIC_API_URL: http://localhost:8080/api/v1
+    depends_on:
+      server:
+        condition: service_healthy
+
+volumes:
+  mysql_data:
+  uploads:

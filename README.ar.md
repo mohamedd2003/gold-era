@@ -91,7 +91,7 @@ MySQL عبر Prisma     مجلد الرفع على القرص
 
 ### إضافات في هذا البناء
 
-الوضع الداكن مفعّل. المجلدات منطقية حسب النوع وليست جداول في قاعدة البيانات. المعاينة والتحميل والحذف النهائي موجودون. **الحذف الناعم وتدوير Refresh Token وDocker غير مضافين** في هذا المستودع.
+الوضع الداكن مفعّل. المجلدات منطقية حسب النوع وليست جداول في قاعدة البيانات. المعاينة والتحميل والحذف النهائي موجودون. **الحذف الناعم وتدوير Refresh Token غير مضافين.** Docker Compose موجود في جذر المستودع.
 
 ---
 
@@ -109,6 +109,8 @@ MySQL عبر Prisma     مجلد الرفع على القرص
 gold-era/
 ├── client/                          # تطبيق Next.js
 ├── server/                          # واجهة Express
+├── docker-compose.yml
+├── docker.env.example
 ├── README.md                        # English
 └── README.ar.md                     # العربية
 ```
@@ -199,6 +201,23 @@ npm run dev
 - الواجهة: `http://localhost:3000`
 - الـ API: `http://localhost:8080/api/v1`
 - الصحة: `http://localhost:8080/health`
+
+### Docker Compose
+
+من جذر المستودع، مع Docker Desktop:
+
+```bash
+docker compose up --build
+```
+
+| الخدمة | العنوان |
+|---|---|
+| الواجهة | `http://localhost:3000` |
+| الـ API | `http://localhost:8080/api/v1` |
+| الصحة | `http://localhost:8080/health` |
+| MySQL | `localhost:3307` (`gold` / `gold` / `gold_era`) |
+
+الإيقاف: `docker compose down`. أضف `-v` فقط إذا أردت مسح بيانات MySQL والملفات المرفوعة.
 
 ---
 
