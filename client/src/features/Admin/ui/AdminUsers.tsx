@@ -13,6 +13,7 @@ import {
   Trash2,
   UserRoundX,
 } from "lucide-react";
+import { FilterDropdown } from "@/components/ui/filter-dropdown";
 import { cn } from "@/lib/utils";
 import type { UserRole } from "@/types";
 import { useDebouncedValue } from "@/features/UploadFiles/hooks/useDebouncedValue";
@@ -104,42 +105,27 @@ export function AdminUsers({ currentUserId }: { currentUserId: number }) {
             className="h-10 w-full rounded-xl border border-border bg-card pr-3 pl-10 text-sm text-foreground outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30"
           />
         </label>
-        <select
+        <FilterDropdown
           value={role}
-          onChange={(event) => setRole(event.target.value as "" | UserRole)}
-          aria-label="Filter by role"
-          className="h-10 rounded-xl border border-border bg-card px-3 text-sm text-foreground outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30 sm:w-36"
-        >
-          {ROLE_FILTERS.map((option) => (
-            <option key={option.value || "all"} value={option.value}>
-              {option.label}
-            </option>
-          ))}
-        </select>
-        <select
+          onChange={setRole}
+          options={ROLE_FILTERS}
+          ariaLabel="Filter by role"
+          className="sm:w-36"
+        />
+        <FilterDropdown
           value={verified}
-          onChange={(event) => setVerified(event.target.value)}
-          aria-label="Filter by verification status"
-          className="h-10 rounded-xl border border-border bg-card px-3 text-sm text-foreground outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30 sm:w-36"
-        >
-          {VERIFIED_FILTERS.map((option) => (
-            <option key={option.value || "any"} value={option.value}>
-              {option.label}
-            </option>
-          ))}
-        </select>
-        <select
+          onChange={setVerified}
+          options={VERIFIED_FILTERS}
+          ariaLabel="Filter by verification status"
+          className="sm:w-36"
+        />
+        <FilterDropdown
           value={sort}
-          onChange={(event) => setSort(event.target.value)}
-          aria-label="Sort users"
-          className="h-10 rounded-xl border border-border bg-card px-3 text-sm text-foreground outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30 sm:w-36"
-        >
-          {USER_SORT_OPTIONS.map((option) => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
-        </select>
+          onChange={setSort}
+          options={USER_SORT_OPTIONS}
+          ariaLabel="Sort users"
+          className="sm:w-36"
+        />
       </div>
 
       {isLoading ? (
@@ -266,26 +252,26 @@ function UserRow({
 
       <td className="px-4 py-3">
         <div className="flex items-center gap-2">
-          <select
+          <FilterDropdown
             value={user.role}
             // The server blocks self role changes too; this keeps the UI honest.
             disabled={isSelf || update.isPending}
-            onChange={(event) =>
+            onChange={(role) =>
               update.mutate({
                 id: user.id,
-                input: { role: event.target.value as UserRole },
+                input: { role },
               })
             }
-            aria-label={`Role for ${user.name}`}
-            title={isSelf ? "You cannot change your own role" : undefined}
-            className="h-9 rounded-xl border border-border bg-background px-2 text-xs font-medium text-foreground outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            {ROLE_OPTIONS.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
+            options={ROLE_OPTIONS}
+            ariaLabel={
+              isSelf
+                ? "You cannot change your own role"
+                : `Role for ${user.name}`
+            }
+            size="sm"
+            align="start"
+            className="h-9 w-[7.25rem] bg-background"
+          />
           {update.isPending && (
             <Loader2 className="size-3.5 animate-spin text-muted-foreground" />
           )}

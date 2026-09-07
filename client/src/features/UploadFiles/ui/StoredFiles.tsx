@@ -13,6 +13,7 @@ import {
   Search,
   Trash2,
 } from "lucide-react";
+import { FilterDropdown } from "@/components/ui/filter-dropdown";
 import { cn } from "@/lib/utils";
 import { useDebouncedValue } from "../hooks/useDebouncedValue";
 import { useDeleteFile, useFiles } from "../hooks/useUploadFiles";
@@ -94,30 +95,18 @@ export function StoredFiles() {
             className="h-10 w-full rounded-xl border border-border bg-card pr-3 pl-10 text-sm text-foreground outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30"
           />
         </label>
-        <select
+        <FilterDropdown
           value={type}
-          onChange={(event) => setType(event.target.value)}
-          aria-label="Filter by type"
-          className="h-10 rounded-xl border border-border bg-card px-3 text-sm text-foreground outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30 sm:w-40"
-        >
-          {TYPE_FILTERS.map((option) => (
-            <option key={option.value || "all"} value={option.value}>
-              {option.label}
-            </option>
-          ))}
-        </select>
-        <select
+          onChange={setType}
+          options={TYPE_FILTERS}
+          ariaLabel="Filter by type"
+        />
+        <FilterDropdown
           value={sort}
-          onChange={(event) => setSort(event.target.value)}
-          aria-label="Sort files"
-          className="h-10 rounded-xl border border-border bg-card px-3 text-sm text-foreground outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30 sm:w-40"
-        >
-          {SORT_OPTIONS.map((option) => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
-        </select>
+          onChange={setSort}
+          options={SORT_OPTIONS}
+          ariaLabel="Sort files"
+        />
       </div>
 
       {isSearching ? (

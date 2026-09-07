@@ -12,6 +12,7 @@ import {
   fillHistory,
   formatHistoryLabel,
 } from "../utils/chart";
+import { FilterDropdown } from "@/components/ui/filter-dropdown";
 import { ApexChart } from "./ApexChart";
 
 /**
@@ -52,18 +53,14 @@ export function PeriodSelect({
   onChange: (period: StatsPeriod) => void;
 }) {
   return (
-    <select
+    <FilterDropdown
       value={value}
-      onChange={(event) => onChange(event.target.value as StatsPeriod)}
-      aria-label="Time range"
-      className="h-8 rounded-lg border border-border bg-background px-2 text-xs text-foreground outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30"
-    >
-      {STATS_PERIODS.map((option) => (
-        <option key={option.value} value={option.value}>
-          {option.label}
-        </option>
-      ))}
-    </select>
+      onChange={onChange}
+      options={STATS_PERIODS}
+      ariaLabel="Time range"
+      size="sm"
+      className="w-28 bg-background"
+    />
   );
 }
 
