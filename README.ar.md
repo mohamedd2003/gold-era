@@ -154,6 +154,59 @@ MAIL_FROM="Gold Cloud <your.gmail@gmail.com>"
 
 ## 6. قاعدة البيانات والهجرات
 
+### العلاقات
+
+ثلاث جداول في MySQL. `Role` enum على `users` وليس جدولاً. لا يوجد جدول مجلدات؛ Documents / Photos / Projects / Designs تجميع في الواجهة حسب نوع الملف.
+
+<div dir="ltr">
+
+```mermaid
+erDiagram
+    users ||--o{ files : owns
+    users ||--o{ verification_codes : has
+
+    users {
+        int id PK
+        varchar name
+        varchar email UK
+        varchar password
+        enum role "USER | ADMIN"
+        boolean isVerified
+        datetime createdAt
+        datetime updatedAt
+    }
+
+    files {
+        int id PK
+        varchar originalName
+        varchar filename
+        varchar path
+        int size
+        varchar mimetype
+        text extractedContent
+        int userId FK
+        datetime createdAt
+        datetime updatedAt
+    }
+
+    verification_codes {
+        int id PK
+        varchar code
+        int userId FK
+        datetime expiresAt
+        datetime createdAt
+    }
+```
+
+</div>
+
+| الأب | الابن | العلاقة | المفتاح الأجنبي | عند الحذف |
+|---|---|---|---|---|
+| `users` | `files` | 1 → N | `files.userId` → `users.id` | Cascade (الصف + الملف على القرص) |
+| `users` | `verification_codes` | 1 → N | `verification_codes.userId` → `users.id` | Cascade |
+
+حذف المستخدم يمسح كل رموز OTP وكل ملفاته. كل ملف يتبع مستخدم واحد. المستخدم ممكن يكون من غير ملفات أو رموز.
+
 ```bash
 cd server
 npm install
@@ -171,10 +224,10 @@ UPDATE users SET role = 'ADMIN', isVerified = 1 WHERE email = 'admin@example.com
 
 | الحساب | البريد | كلمة المرور |
 |---|---|---|
-| مستخدم | `user@example.com` | `User123________________________________________` |
+| مستخدم | `user@example.com` | `User123` |
 | أدمن | `admin@example.com` | `Admin123` |
 
-غيّر كلمات المرور قبل أي نشر عام.
+
 
 ---
 

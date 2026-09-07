@@ -251,6 +251,55 @@ The evaluation brief also mentioned `ADMIN_EMAIL`, `ADMIN_PASSWORD`, `GMAIL_USER
 
 ## 6. Database setup and migrations
 
+### Relationships
+
+Three MySQL tables. `Role` is an enum on `users`, not a table. There is no folder table — Documents / Photos / Projects / Designs are grouped in the UI by MIME type.
+
+```mermaid
+erDiagram
+    users ||--o{ files : owns
+    users ||--o{ verification_codes : has
+
+    users {
+        int id PK
+        varchar name
+        varchar email UK
+        varchar password
+        enum role "USER | ADMIN"
+        boolean isVerified
+        datetime createdAt
+        datetime updatedAt
+    }
+
+    files {
+        int id PK
+        varchar originalName
+        varchar filename
+        varchar path
+        int size
+        varchar mimetype
+        text extractedContent
+        int userId FK
+        datetime createdAt
+        datetime updatedAt
+    }
+
+    verification_codes {
+        int id PK
+        varchar code
+        int userId FK
+        datetime expiresAt
+        datetime createdAt
+    }
+```
+
+| Parent | Child | Cardinality | Foreign key | On delete |
+|---|---|---|---|---|
+| `users` | `files` | 1 → N | `files.userId` → `users.id` | Cascade (row + disk file) |
+| `users` | `verification_codes` | 1 → N | `verification_codes.userId` → `users.id` | Cascade |
+
+Deleting a user removes every OTP row and every file row that belongs to them. A file always belongs to exactly one user. A user may have zero or more files and zero or more verification codes.
+
 1. Create an empty MySQL database, for example `gold_era`.
 2. Put the connection string in `server/.env` as `DATABASE_URL`.
 3. From `server/`:
@@ -280,7 +329,7 @@ Use these after the accounts exist and are verified (or after you set `isVerifie
 
 | Account | Email | Password |
 |---|---|---|
-| Standard user | `user@example.com` | `User123________________________________________` |
+| Standard user | `user@example.com` | `User123` |
 | Administrator | `admin@example.com` | `Admin123` |
 
 Change these passwords before any public deployment.
