@@ -473,21 +473,15 @@ The browser never calls Express directly. Same-origin handlers:
 
 1. Create a MySQL plugin / managed database.
 2. Set `DATABASE_URL`, `JWT_SECRET`, `NODE_ENV=production`, SMTP vars, `UPLOAD_DIR`.
-3. Start command already runs generate + server:
+3. Start command generates the client, applies migrations, then serves:
 
 ```bash
 npm start
-# prisma generate && tsx index.ts
+# prisma generate && prisma migrate deploy && tsx index.ts
 ```
 
-4. Run migrations once against production:
-
-```bash
-npx prisma migrate deploy
-```
-
-5. Persistent disk is required if you keep local Multer storage. Object storage (S3) is not wired in this version.
-6. Public URL must be reachable from Vercel, for example `https://<service>.up.railway.app/api/v1`.
+4. Uploads are saved on disk **and** as `files.content` (MySQL LONGBLOB). Railway’s container disk is wiped on every restart; the next download restores the file from MySQL. Files uploaded before this change have no blob and must be uploaded again.
+5. Public URL must be reachable from Vercel, for example `https://<service>.up.railway.app/api/v1`.
 
 ### Frontend — Vercel
 
@@ -512,7 +506,7 @@ Typical failure: API URL missing `/api/v1`, or the variable set in Vercel withou
 - Evaluation window assumed **8–10 hours** of focused delivery: auth, uploads, listing, RBAC, and analytics first; polish (skeletons, shadcn menus, UTC chart buckets) second.
 - Criteria covered: registration + OTP, JWT sessions, user file CRUD with search / filter / sort / pagination, extracted text for text-like MIME types, admin user + file management, admin and user dashboards, double-sided access control.
 - Password rules reject weak values (`User123` alone is invalid — the test user password includes a long underscore tail so it satisfies “special character”).
-- File delete is **hard** (row + disk). There is no recycle bin and no refresh-token family.
+- File delete is **hard** (row + disk + stored bytes). There is no recycle bin and no refresh-token family.
 - Content extraction is UTF-8 text only. PDF / Office binaries do not get `extractedContent` unless a parser is added later.
 - Charts fill empty UTC buckets so hourly / daily axes stay a fixed length (7 points).
 - Local Next.js talking to a remote Railway API is supported; keep `NEXT_PUBLIC_API_URL` pointed at the API you actually run.

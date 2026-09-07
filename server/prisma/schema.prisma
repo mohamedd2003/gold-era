@@ -49,6 +49,8 @@ model File {
   size             Int
   mimetype         String   @db.VarChar(150)
   extractedContent String?  @db.Text
+  // Bytes live in MySQL so Railway/ephemeral disks can still serve the file.
+  content          Bytes?   @db.LongBlob
   userId           Int
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt

@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "tsx watch index.ts",
     "postinstall": "prisma generate",
-    "start": "prisma generate && tsx index.ts",
+    "start": "prisma generate && prisma migrate deploy && tsx index.ts",
     "test": "echo \"Error: no test specified\" && exit 1",
     "prisma:generate": "prisma generate",
     "prisma:pull": "prisma db pull",

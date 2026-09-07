@@ -4,8 +4,9 @@ import path from "node:path";
 import multer from "multer";
 import { env } from "../config/env";
 import { BadRequestError } from "../errors/HttpError";
+import { uploadRoot as resolveUploadRoot } from "../utils/storagePath";
 
-const uploadRoot = path.resolve(process.cwd(), env.uploads.dir);
+const uploadRoot = resolveUploadRoot();
 
 // Ensure the upload directory exists at startup.
 fs.mkdirSync(uploadRoot, { recursive: true });

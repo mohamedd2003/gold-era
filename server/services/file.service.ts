@@ -9,7 +9,9 @@ import { buildMeta, type PaginationParams } from "../utils/pagination";
 import type { Meta } from "../utils/ApiResponse";
 import { extractTextContent } from "../utils/extractContent";
 import type { AuthenticatedUser } from "../types/express";
-import { Role, type File, type Prisma } from "../generated/prisma/client";
+import { Role, type Prisma } from "../generated/prisma/client";
+import { resolveStoredPaths, uploadRoot } from "../utils/storagePath";
+import type { FileMeta } from "../repositories/file.repository";
 import {
   FileRepository,
   fileRepository,
@@ -36,7 +38,7 @@ export class FileService {
   private async findAccessible(
     user: AuthenticatedUser,
     id: number
-  ): Promise<File> {
+  ): Promise<FileMeta> {
     const file = await this.repo.findById(id);
     if (!file) {
       throw new NotFoundError("File not found");
@@ -61,13 +63,15 @@ export class FileService {
         file.mimetype
       );
 
+      const bytes = await fs.readFile(file.path);
       const created = await this.repo.create({
         originalName: file.originalname,
         filename: file.filename,
-        path: file.path,
+        path: file.filename,
         size: file.size,
         mimetype: file.mimetype,
         extractedContent,
+        content: bytes,
         userId: user.id,
       });
       return toPublicFile(created);
@@ -126,26 +130,43 @@ export class FileService {
     id: number
   ): Promise<{ absolutePath: string; mimetype: string; originalName: string }> {
     const file = await this.findAccessible(user, id);
-    const absolutePath = path.resolve(file.path);
 
-    try {
-      await fs.access(absolutePath);
-    } catch {
-      throw new NotFoundError("File is no longer available on the server");
+    for (const candidate of resolveStoredPaths(file)) {
+      try {
+        await fs.access(candidate);
+        return {
+          absolutePath: candidate,
+          mimetype: file.mimetype,
+          originalName: file.originalName,
+        };
+      } catch {
+        // try the next location, then MySQL bytes
+      }
     }
 
-    return {
-      absolutePath,
-      mimetype: file.mimetype,
-      originalName: file.originalName,
-    };
+    const stored = await this.repo.findContent(id);
+    if (stored && stored.byteLength > 0) {
+      const restored = path.join(uploadRoot(), file.filename);
+      await fs.mkdir(path.dirname(restored), { recursive: true });
+      await fs.writeFile(restored, stored);
+      return {
+        absolutePath: restored,
+        mimetype: file.mimetype,
+        originalName: file.originalName,
+      };
+    }
+
+    throw new NotFoundError("File is no longer available on the server");
   }
 
   async remove(user: AuthenticatedUser, id: number): Promise<void> {
     const file = await this.findAccessible(user, id);
     await this.repo.delete(file.id);
-    // Best-effort removal from disk; ignore if already gone.
-    await fs.unlink(file.path).catch(() => undefined);
+    await Promise.all(
+      resolveStoredPaths(file).map((candidate) =>
+        fs.unlink(candidate).catch(() => undefined)
+      )
+    );
   }
 }
 

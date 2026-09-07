@@ -293,7 +293,7 @@ docker compose up --build
 
 ## 9. النشر
 
-**الخادم (Railway / Render / Fly.io):** اربط MySQL، ضع `DATABASE_URL` و`JWT_SECRET` ومتغيرات SMTP، ثم `npm start` (`prisma generate && tsx index.ts`) و`npx prisma migrate deploy`. الرفع على القرص يحتاج تخزين ثابت إن بقيت ملفات Multer محلية.
+**الخادم (Railway / Render / Fly.io):** اربط MySQL، ضع `DATABASE_URL` و`JWT_SECRET` ومتغيرات SMTP، ثم `npm start` (`prisma generate && prisma migrate deploy && tsx index.ts`). الملفات تتخزن على القرص وفي عمود `files.content`. ديسك Railway بيتمسح مع كل restart؛ التحميل التالي بيرجع الملف من MySQL. الملفات المرفوعة قبل التحديث لازم تترفع من جديد.
 
 **الواجهة (Vercel):** جذر المشروع `client`، والمتغير `NEXT_PUBLIC_API_URL=https://<host>/api/v1` ثم إعادة نشر. أشهر خطأ: نسيان `/api/v1` أو تعديل المتغير من غير redeploy.
 

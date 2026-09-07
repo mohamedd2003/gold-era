@@ -1,6 +1,24 @@
 import { BaseRepository } from "./base.repository";
 import type { File, Prisma } from "../generated/prisma/client";
 
+/** Metadata only — never load `content` (can be tens of MB). */
+export const fileMetaSelect = {
+  id: true,
+  originalName: true,
+  filename: true,
+  path: true,
+  size: true,
+  mimetype: true,
+  extractedContent: true,
+  userId: true,
+  createdAt: true,
+  updatedAt: true,
+} satisfies Prisma.FileSelect;
+
+export type FileMeta = Prisma.FileGetPayload<{
+  select: typeof fileMetaSelect;
+}>;
+
 /**
  * List projection: excludes the potentially large `extractedContent` column.
  */
@@ -34,8 +52,19 @@ export class FileRepository extends BaseRepository {
     return this.prisma.file.create({ data });
   }
 
-  findById(id: number): Promise<File | null> {
-    return this.prisma.file.findUnique({ where: { id } });
+  findById(id: number): Promise<FileMeta | null> {
+    return this.prisma.file.findUnique({
+      where: { id },
+      select: fileMetaSelect,
+    });
+  }
+
+  async findContent(id: number): Promise<Uint8Array | null> {
+    const row = await this.prisma.file.findUnique({
+      where: { id },
+      select: { content: true },
+    });
+    return row?.content ?? null;
   }
 
   async findMany(

@@ -1,4 +1,4 @@
-import type { File } from "../generated/prisma/client";
+import type { FileMeta } from "../repositories/file.repository";
 
 /**
  * Public-facing file shape. Hides the internal on-disk `path` so the API
@@ -37,7 +37,7 @@ export interface PublicFileListItem {
   owner?: FileOwner;
 }
 
-export function toPublicFile(file: File): PublicFile {
+export function toPublicFile(file: FileMeta): PublicFile {
   return {
     id: file.id,
     originalName: file.originalName,
