@@ -17,6 +17,11 @@ export interface StoredFilesPage {
   meta?: PaginationMeta;
 }
 
+/** GET /files/:id — includes the extracted text when the server could read it. */
+export interface FileDetails extends StoredFile {
+  extractedContent: string | null;
+}
+
 export type UploadStatus =
   | "queued"
   | "uploading"

@@ -38,7 +38,7 @@ export function UploadFiles() {
   }
 
   return (
-    <section className="mx-auto w-full max-w-3xl">
+    <section className="mx-auto w-full max-w-5xl">
       <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
         Upload files
       </h1>

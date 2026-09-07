@@ -1,11 +1,17 @@
 "use client";
 
 import { useCallback, useRef, useState } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  keepPreviousData,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
   apiErrorMessage,
   deleteFile,
+  getFile,
   listFiles,
   uploadFile,
 } from "../services/UploadFiles.services";
@@ -18,6 +24,7 @@ import {
 export const filesKeys = {
   all: ["files"] as const,
   list: (params: ListFilesParams) => ["files", "list", params] as const,
+  detail: (id: number) => ["files", "detail", id] as const,
 };
 
 /** GET /api/files through React Query. */
@@ -25,6 +32,16 @@ export function useFiles(params: ListFilesParams = {}) {
   return useQuery({
     queryKey: filesKeys.list(params),
     queryFn: () => listFiles(params),
+    placeholderData: keepPreviousData,
+  });
+}
+
+/** GET /api/files/:id — used by the details panel. */
+export function useFile(id: number | null) {
+  return useQuery({
+    queryKey: filesKeys.detail(id ?? 0),
+    queryFn: () => getFile(id as number),
+    enabled: id != null,
   });
 }
 

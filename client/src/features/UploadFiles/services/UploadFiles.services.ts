@@ -1,7 +1,11 @@
 import axios from "axios";
 import { nextApi } from "@/lib/axios";
 import type { ApiError, ApiSuccess } from "@/types";
-import type { StoredFile, StoredFilesPage } from "../types/UploadFiles.types";
+import type {
+  FileDetails,
+  StoredFile,
+  StoredFilesPage,
+} from "../types/UploadFiles.types";
 import {
   fileIdSchema,
   listFilesParamsSchema,
@@ -36,6 +40,14 @@ export async function uploadFile(
     },
   });
 
+  return data.data;
+}
+
+/** GET /api/files/:id */
+export async function getFile(id: number): Promise<FileDetails> {
+  const { data } = await nextApi.get<ApiSuccess<FileDetails>>(
+    `/files/${fileIdSchema.parse(id)}`
+  );
   return data.data;
 }
 
