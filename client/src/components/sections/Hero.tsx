@@ -53,7 +53,7 @@ const sidebarItems = [
   { label: "Trash", Icon: Trash2 },
 ];
 
-export function Hero() {
+export function Hero({ isAuthenticated = false }: { isAuthenticated?: boolean }) {
   return (
     <section className="relative overflow-hidden bg-linear-to-b from-blue-50/80 via-indigo-50/40 to-background dark:from-primary/15 dark:via-primary/5 dark:to-background">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(37,99,235,0.14),transparent_60%)]" />
@@ -101,18 +101,29 @@ export function Hero() {
             variants={fadeUp}
             className="mx-auto mt-8 flex w-full max-w-sm flex-col items-stretch justify-center gap-3 sm:max-w-none sm:flex-row sm:items-center"
           >
-            <Link
-              href="/register"
-              className="inline-flex h-11 items-center justify-center rounded-lg bg-primary px-6 text-sm font-semibold text-primary-foreground shadow-lg shadow-primary/25 transition hover:bg-primary/90"
-            >
-              Start Free Trial
-            </Link>
-            <Link
-              href="#pricing"
-              className="inline-flex h-11 items-center justify-center rounded-lg border border-border bg-background px-6 text-sm font-semibold text-foreground shadow-sm transition hover:bg-secondary"
-            >
-              View Plans
-            </Link>
+            {isAuthenticated ? (
+              <Link
+                href="/dashboard"
+                className="inline-flex h-11 items-center justify-center rounded-lg bg-primary px-6 text-sm font-semibold text-primary-foreground shadow-lg shadow-primary/25 transition hover:bg-primary/90"
+              >
+                Go to My Dashboard
+              </Link>
+            ) : (
+              <>
+                <Link
+                  href="/register"
+                  className="inline-flex h-11 items-center justify-center rounded-lg bg-primary px-6 text-sm font-semibold text-primary-foreground shadow-lg shadow-primary/25 transition hover:bg-primary/90"
+                >
+                  Start Free Trial
+                </Link>
+                <Link
+                  href="#pricing"
+                  className="inline-flex h-11 items-center justify-center rounded-lg border border-border bg-background px-6 text-sm font-semibold text-foreground shadow-sm transition hover:bg-secondary"
+                >
+                  View Plans
+                </Link>
+              </>
+            )}
           </motion.div>
 
           <motion.ul

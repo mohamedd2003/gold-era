@@ -7,6 +7,13 @@ import { Menu, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import logo from "@/app/icon.png";
 import { ThemeToggle } from "@/components/layout/ThemeToggle";
+import { UserMenu } from "@/components/layout/UserMenu";
+import { logoutAction } from "@/app/dashboard/logout.action";
+
+type NavbarUser = {
+  name: string;
+  email?: string;
+};
 
 const navLinks = [
   { name: "Features", href: "/#features" },
@@ -14,7 +21,7 @@ const navLinks = [
   { name: "Pricing", href: "/#pricing" },
 ];
 
-export default function Navbar() {
+export default function Navbar({ user = null }: { user?: NavbarUser | null }) {
   const [scrolled, setScrolled] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
@@ -81,29 +88,39 @@ export default function Navbar() {
 
           <div className="hidden items-center gap-2 md:flex">
             <ThemeToggle />
-            <Link
-              href="/login"
-              className="inline-flex h-9 items-center rounded-full px-4 text-sm font-semibold text-foreground transition hover:bg-secondary"
-            >
-              Sign in
-            </Link>
-            <Link
-              href="/register"
-              className="inline-flex h-9 items-center rounded-full bg-primary px-4 text-sm font-semibold text-primary-foreground shadow-md shadow-primary/25 transition hover:bg-primary/90"
-            >
-              Get Started
-            </Link>
+            {user ? (
+              <UserMenu name={user.name} email={user.email} />
+            ) : (
+              <>
+                <Link
+                  href="/login"
+                  className="inline-flex h-9 items-center rounded-full px-4 text-sm font-semibold text-foreground transition hover:bg-secondary"
+                >
+                  Sign in
+                </Link>
+                <Link
+                  href="/register"
+                  className="inline-flex h-9 items-center rounded-full bg-primary px-4 text-sm font-semibold text-primary-foreground shadow-md shadow-primary/25 transition hover:bg-primary/90"
+                >
+                  Get Started
+                </Link>
+              </>
+            )}
           </div>
 
           <div className="flex shrink-0 items-center gap-1.5 md:hidden">
             <ThemeToggle compact />
-            {!isMenuOpen && (
-              <Link
-                href="/login"
-                className="inline-flex h-8 items-center rounded-full bg-primary px-3 text-xs font-semibold text-primary-foreground"
-              >
-                Sign in
-              </Link>
+            {user ? (
+              <UserMenu name={user.name} email={user.email} compact />
+            ) : (
+              !isMenuOpen && (
+                <Link
+                  href="/login"
+                  className="inline-flex h-8 items-center rounded-full bg-primary px-3 text-xs font-semibold text-primary-foreground"
+                >
+                  Sign in
+                </Link>
+              )
             )}
             <button
               className="rounded-full p-1.5 text-foreground"
@@ -136,20 +153,42 @@ export default function Navbar() {
               {link.name}
             </a>
           ))}
-          <Link
-            href="/login"
-            onClick={() => setIsMenuOpen(false)}
-            className="text-2xl font-semibold text-primary"
-          >
-            Sign in
-          </Link>
-          <Link
-            href="/register"
-            onClick={() => setIsMenuOpen(false)}
-            className="inline-flex h-11 w-full items-center justify-center rounded-full bg-primary px-6 text-sm font-semibold text-primary-foreground"
-          >
-            Get Started
-          </Link>
+          {user ? (
+            <>
+              <Link
+                href="/dashboard"
+                onClick={() => setIsMenuOpen(false)}
+                className="text-2xl font-semibold text-primary"
+              >
+                Dashboard
+              </Link>
+              <form action={logoutAction} className="w-full">
+                <button
+                  type="submit"
+                  className="inline-flex h-11 w-full items-center justify-center rounded-full border border-border bg-background px-6 text-sm font-semibold text-foreground"
+                >
+                  Sign out
+                </button>
+              </form>
+            </>
+          ) : (
+            <>
+              <Link
+                href="/login"
+                onClick={() => setIsMenuOpen(false)}
+                className="text-2xl font-semibold text-primary"
+              >
+                Sign in
+              </Link>
+              <Link
+                href="/register"
+                onClick={() => setIsMenuOpen(false)}
+                className="inline-flex h-11 w-full items-center justify-center rounded-full bg-primary px-6 text-sm font-semibold text-primary-foreground"
+              >
+                Get Started
+              </Link>
+            </>
+          )}
         </div>
       </div>
     </header>
