@@ -1,11 +1,11 @@
-export type VerifyStatus = "idle" | "success" | "error";
+import type { ActionStatus } from "@/types";
 
 export interface VerifyEmailState {
-  status: VerifyStatus;
+  status: ActionStatus;
   message: string;
 }
 
 export interface ResendState {
-  status: VerifyStatus;
+  status: ActionStatus;
   message: string;
 }

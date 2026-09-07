@@ -1,27 +1,14 @@
 "use server";
 
 import { cookies } from "next/headers";
+import { API_URL } from "@/lib/axios";
+import type { ApiError, ApiSuccess } from "@/types";
 import { loginSchema, type LoginInput } from "../validation/login.valdation";
 import type { LoginData, LoginState } from "../types/Login.types";
-
-const API_URL =
-  process.env.NEXT_PUBLIC_API_URL ??
-  "https://gold-era-production-a530.up.railway.app/api/v1";
 
 const TOKEN_COOKIE = "gold_era_token";
 const ROLE_COOKIE = "gold_era_role";
 const TOKEN_MAX_AGE = 60 * 60 * 24 * 7; // 7 days
-
-interface ApiSuccess {
-  success: true;
-  message: string;
-  data: LoginData;
-}
-
-interface ApiError {
-  success: false;
-  message: string;
-}
 
 /**
  * Server Action that authenticates a user against `POST /auth/login`,
@@ -38,7 +25,7 @@ export async function loginAction(values: LoginInput): Promise<LoginState> {
     };
   }
 
-  let body: ApiSuccess | ApiError | null = null;
+  let body: ApiSuccess<LoginData> | ApiError | null = null;
   let ok = false;
   let httpStatus = 0;
 
@@ -52,7 +39,7 @@ export async function loginAction(values: LoginInput): Promise<LoginState> {
     ok = res.ok;
     httpStatus = res.status;
     body = (await res.json().catch(() => null)) as
-      | ApiSuccess
+      | ApiSuccess<LoginData>
       | ApiError
       | null;
   } catch {

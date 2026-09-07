@@ -7,16 +7,8 @@ import {
   type VerifyEmailInput,
 } from "../validation/verifyEmail.validation";
 import type { ResendState, VerifyEmailState } from "../types/verifyEmail.types";
-
-const API_URL =
-  process.env.NEXT_PUBLIC_API_URL ??
-  "https://gold-era-production-a530.up.railway.app/api/v1";
-
-interface ApiResponse {
-  success: boolean;
-  message: string;
-  details?: { field?: string; message: string }[];
-}
+import { API_URL } from "@/lib/axios";
+import type { ApiError, ApiResponse } from "@/types";
 
 async function postJson(
   path: string,
@@ -50,7 +42,7 @@ export async function verifyEmailAction(
       return {
         status: "error",
         message:
-          body?.details?.[0]?.message ??
+          (body as ApiError | null)?.details?.[0]?.message ??
           body?.message ??
           "Verification failed. Please try again.",
       };
@@ -82,7 +74,7 @@ export async function resendCodeAction(
       return {
         status: "error",
         message:
-          body?.details?.[0]?.message ??
+          (body as ApiError | null)?.details?.[0]?.message ??
           body?.message ??
           "Could not resend the code. Please try again.",
       };

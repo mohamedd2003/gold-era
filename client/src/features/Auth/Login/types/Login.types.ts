@@ -1,24 +1,14 @@
-export interface AuthUser {
-  id: number;
-  name: string;
-  email: string;
-  role: "USER" | "ADMIN";
-  isVerified: boolean;
-  createdAt: string;
-  updatedAt: string;
-}
+import type { ActionStatus, User, UserRole } from "@/types";
+
+export type { User as AuthUser, UserRole };
 
 export interface LoginData {
   token: string;
-  user: AuthUser;
+  user: User;
 }
 
-export type LoginStatus = "idle" | "success" | "error";
-
-export type UserRole = "USER" | "ADMIN";
-
 export interface LoginState {
-  status: LoginStatus;
+  status: ActionStatus;
   message: string;
   /** The signed-in user's role (only on success). */
   role?: UserRole;

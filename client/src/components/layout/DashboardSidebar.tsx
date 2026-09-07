@@ -4,13 +4,12 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import {
+  BarChart,
   Clock,
   Folder,
   PanelLeftClose,
   PanelLeftOpen,
-  Share2,
-  Star,
-  Trash2,
+
   X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -20,15 +19,8 @@ const STORAGE_KEY = "gold-era-sidebar-collapsed";
 
 const libraryItems = [
   { id: "all", label: "All Files", href: "/dashboard", Icon: Folder },
-  { id: "recent", label: "Recent", href: "/dashboard?view=recent", Icon: Clock },
-  { id: "shared", label: "Shared", href: "/dashboard?view=shared", Icon: Share2 },
-  {
-    id: "favorites",
-    label: "Favorites",
-    href: "/dashboard?view=favorites",
-    Icon: Star,
-  },
-  { id: "trash", label: "Trash", href: "/dashboard?view=trash", Icon: Trash2 },
+  { id: "analytics", label: "Analytics", href: "/dashboard", Icon: BarChart },
+  
 ] as const;
 
 export type DashboardView = (typeof libraryItems)[number]["id"];

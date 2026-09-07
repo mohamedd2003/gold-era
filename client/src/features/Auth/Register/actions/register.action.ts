@@ -5,22 +5,8 @@ import {
   type RegisterInput,
 } from "../validation/register.validation";
 import type { RegisterState, RegisterUser } from "../types/Register.types";
-
-const API_URL =
-  process.env.NEXT_PUBLIC_API_URL ??
-  "https://gold-era-production-a530.up.railway.app/api/v1";
-
-interface ApiSuccess {
-  success: true;
-  message: string;
-  data: RegisterUser;
-}
-
-interface ApiError {
-  success: false;
-  message: string;
-  details?: { field?: string; message: string }[];
-}
+import { API_URL } from "@/lib/axios";
+import type { ApiError, ApiSuccess } from "@/types";
 
 /**
  * Server Action that registers a user against `POST /auth/register`.
@@ -38,7 +24,7 @@ export async function registerAction(
     };
   }
 
-  let body: ApiSuccess | ApiError | null = null;
+  let body: ApiSuccess<RegisterUser> | ApiError | null = null;
   let ok = false;
 
   try {
@@ -50,7 +36,7 @@ export async function registerAction(
     });
     ok = res.ok;
     body = (await res.json().catch(() => null)) as
-      | ApiSuccess
+      | ApiSuccess<RegisterUser>
       | ApiError
       | null;
   } catch {

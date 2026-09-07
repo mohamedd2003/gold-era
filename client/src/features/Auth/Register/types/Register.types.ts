@@ -1,17 +1,9 @@
-export interface RegisterUser {
-  id: number;
-  name: string;
-  email: string;
-  role: "USER" | "ADMIN";
-  isVerified: boolean;
-  createdAt: string;
-  updatedAt: string;
-}
+import type { ActionStatus, User } from "@/types";
 
-export type RegisterStatus = "idle" | "success" | "error";
+export type { User as RegisterUser };
 
 export interface RegisterState {
-  status: RegisterStatus;
+  status: ActionStatus;
   message: string;
   /** The email that was registered, so the UI can prefill verification. */
   email?: string;

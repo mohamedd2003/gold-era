@@ -9,11 +9,9 @@ import logo from "@/app/icon.png";
 import { ThemeToggle } from "@/components/layout/ThemeToggle";
 import { UserMenu } from "@/components/layout/UserMenu";
 import { logoutAction } from "@/app/dashboard/logout.action";
+import type { User } from "@/types";
 
-type NavbarUser = {
-  name: string;
-  email?: string;
-};
+type NavbarUser = Pick<User, "name" | "email">;
 
 const navLinks = [
   { name: "Features", href: "/#features" },
