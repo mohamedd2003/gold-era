@@ -1,4 +1,4 @@
-import { NotFoundError } from "../errors/HttpError";
+import { BadRequestError, NotFoundError } from "../errors/HttpError";
 import { buildMeta, type PaginationParams } from "../utils/pagination";
 import type { Meta } from "../utils/ApiResponse";
 import type { Prisma } from "../generated/prisma/client";
@@ -36,16 +36,27 @@ export class UserService {
     return { items: items.map(toPublicUser), meta: buildMeta(total, pagination) };
   }
 
-  async update(id: number, dto: UpdateUserDto): Promise<PublicUser> {
+  async update(
+    id: number,
+    dto: UpdateUserDto,
+    actorId: number
+  ): Promise<PublicUser> {
     const existing = await this.repo.findById(id);
     if (!existing) {
       throw new NotFoundError("User not found");
+    }
+    // Guards against an admin accidentally locking themselves out.
+    if (id === actorId && dto.role && dto.role !== existing.role) {
+      throw new BadRequestError("You cannot change your own role");
     }
     const updated = await this.repo.update(id, dto);
     return toPublicUser(updated);
   }
 
-  async remove(id: number): Promise<void> {
+  async remove(id: number, actorId: number): Promise<void> {
+    if (id === actorId) {
+      throw new BadRequestError("You cannot delete your own account");
+    }
     const existing = await this.repo.findById(id);
     if (!existing) {
       throw new NotFoundError("User not found");

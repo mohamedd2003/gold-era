@@ -1,5 +1,11 @@
 import type { PaginationMeta } from "@/types";
 
+export interface FileOwner {
+  id: number;
+  name: string;
+  email: string;
+}
+
 /** A file already stored on the server (list projection). */
 export interface StoredFile {
   id: number;
@@ -10,6 +16,8 @@ export interface StoredFile {
   userId: number;
   createdAt: string;
   updatedAt: string;
+  /** Only meaningful in admin views, where files span every account. */
+  owner?: FileOwner;
 }
 
 export interface StoredFilesPage {

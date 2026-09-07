@@ -85,8 +85,10 @@ export class FileService {
   ): Promise<{ items: PublicFileListItem[]; meta: Meta }> {
     const where: Prisma.FileWhereInput = {};
 
-    // Regular users only ever see their own files.
-    if (!this.isAdmin(user)) {
+    // Regular users only ever see their own files; admins may scope by owner.
+    if (this.isAdmin(user)) {
+      if (query.userId) where.userId = query.userId;
+    } else {
       where.userId = user.id;
     }
     if (query.search) {

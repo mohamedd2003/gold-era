@@ -14,6 +14,8 @@ export const fileListSelect = {
   userId: true,
   createdAt: true,
   updatedAt: true,
+  // Owner details so admins can tell whose file they are looking at.
+  user: { select: { id: true, name: true, email: true } },
 } satisfies Prisma.FileSelect;
 
 export type FileListItem = Prisma.FileGetPayload<{

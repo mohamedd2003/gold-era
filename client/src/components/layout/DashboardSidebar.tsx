@@ -2,47 +2,43 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { usePathname, useSearchParams } from "next/navigation";
+import { usePathname } from "next/navigation";
 import {
   BarChart,
+  Files,
   Folder,
+  LayoutDashboard,
   PanelLeftClose,
   PanelLeftOpen,
-
+  Users,
   X,
 } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
+import type { UserRole } from "@/types";
 import { useSidebar } from "@/components/layout/sidebar-context";
 
 const STORAGE_KEY = "gold-era-sidebar-collapsed";
 
-const libraryItems = [
-  { id: "all", label: "All Files", href: "/dashboard", Icon: Folder },
-  { id: "analytics", label: "Analytics", href: "/dashboard/analytics", Icon: BarChart },
-] as const;
+type NavItem = { label: string; href: string; Icon: LucideIcon };
 
-export type DashboardView = (typeof libraryItems)[number]["id"];
+const userItems: NavItem[] = [
+  { label: "All Files", href: "/dashboard", Icon: Folder },
+  { label: "Analytics", href: "/dashboard/analytics", Icon: BarChart },
+];
 
-export function DashboardSidebar({
-  active: activeProp,
-}: {
-  active?: DashboardView;
-}) {
+const adminItems: NavItem[] = [
+  { label: "Overview", href: "/dashboard", Icon: LayoutDashboard },
+  { label: "Users", href: "/dashboard/users", Icon: Users },
+  { label: "Files", href: "/dashboard/files", Icon: Files },
+  { label: "Analytics", href: "/dashboard/analytics", Icon: BarChart },
+];
+
+export function DashboardSidebar({ role }: { role: UserRole }) {
   const pathname = usePathname();
-  const searchParams = useSearchParams();
   const { mobileOpen, closeMobile } = useSidebar();
   const [collapsed, setCollapsed] = useState(false);
-  const viewParam = searchParams.get("view");
-  const activeFromUrl: DashboardView | undefined = libraryItems.some(
-    (item) => item.id === viewParam
-  )
-    ? (viewParam as DashboardView)
-    : pathname === "/dashboard/analytics"
-      ? "analytics"
-      : pathname === "/dashboard"
-        ? "all"
-        : undefined;
-  const active = activeProp ?? activeFromUrl;
+  const items = role === "ADMIN" ? adminItems : userItems;
 
   useEffect(() => {
     setCollapsed(localStorage.getItem(STORAGE_KEY) === "1");
@@ -67,24 +63,27 @@ export function DashboardSidebar({
     });
   }
 
+  const label = role === "ADMIN" ? "Administration" : "Library";
+
   return (
     <>
       <aside
         className={cn(
-          "sticky top-[69px] hidden h-[calc(100dvh-81px)] flex-col rounded-2xl bg-secondary shadow-sm transition-[width] duration-300 md:mx-3 md:mb-3 md:mt-3 md:flex",
+          "sticky top-[69px] hidden h-[calc(100dvh-81px)] flex-col rounded-2xl bg-secondary shadow-sm transition-[width] duration-300 md:mx-3 md:mt-3 md:mb-3 md:flex",
           collapsed ? "w-[4.75rem] items-center px-2.5 py-4" : "w-60 p-5"
         )}
       >
         <SidebarHeader
+          label={label}
           collapsed={collapsed}
           onToggle={toggleCollapsed}
         />
-        <LibraryNav active={active} collapsed={collapsed} />
+        <SidebarNav items={items} pathname={pathname} collapsed={collapsed} />
       </aside>
 
       <div
         className={cn(
-          "fixed inset-x-0 bottom-0 top-[57px] z-20 md:hidden",
+          "fixed inset-x-0 top-[57px] bottom-0 z-20 md:hidden",
           mobileOpen ? "pointer-events-auto" : "pointer-events-none"
         )}
       >
@@ -104,8 +103,8 @@ export function DashboardSidebar({
           )}
         >
           <div className="mb-4 flex items-center justify-between">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
-              Library
+            <p className="text-[11px] font-semibold tracking-[0.16em] text-muted-foreground uppercase">
+              {label}
             </p>
             <button
               type="button"
@@ -116,7 +115,11 @@ export function DashboardSidebar({
               <X className="size-4" />
             </button>
           </div>
-          <LibraryNav active={active} onNavigate={closeMobile} />
+          <SidebarNav
+            items={items}
+            pathname={pathname}
+            onNavigate={closeMobile}
+          />
         </aside>
       </div>
     </>
@@ -124,9 +127,11 @@ export function DashboardSidebar({
 }
 
 function SidebarHeader({
+  label,
   collapsed,
   onToggle,
 }: {
+  label: string;
   collapsed: boolean;
   onToggle: () => void;
 }) {
@@ -138,8 +143,8 @@ function SidebarHeader({
       )}
     >
       {!collapsed && (
-        <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
-          Library
+        <p className="text-[11px] font-semibold tracking-[0.16em] text-muted-foreground uppercase">
+          {label}
         </p>
       )}
       <button
@@ -159,22 +164,24 @@ function SidebarHeader({
   );
 }
 
-function LibraryNav({
-  active,
+function SidebarNav({
+  items,
+  pathname,
   collapsed = false,
   onNavigate,
 }: {
-  active?: DashboardView;
+  items: NavItem[];
+  pathname: string;
   collapsed?: boolean;
   onNavigate?: () => void;
 }) {
   return (
     <nav className="flex flex-1 flex-col gap-1">
-      {libraryItems.map(({ id, label, href, Icon }) => {
-        const isActive = active === id;
+      {items.map(({ label, href, Icon }) => {
+        const isActive = pathname === href;
         return (
           <Link
-            key={id}
+            key={href}
             href={href}
             title={collapsed ? label : undefined}
             onClick={onNavigate}

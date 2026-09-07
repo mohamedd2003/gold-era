@@ -59,6 +59,10 @@ export function StoredFiles() {
   const total = meta?.total ?? 0;
   const from = total === 0 ? 0 : (page - 1) * PAGE_SIZE + 1;
   const to = Math.min(page * PAGE_SIZE, total);
+  const isSearching =
+    listQuery.isPending ||
+    searchInput.trim() !== search ||
+    listQuery.isPlaceholderData;
 
   return (
     <div className="mt-10">
@@ -116,15 +120,8 @@ export function StoredFiles() {
         </select>
       </div>
 
-      {listQuery.isPending ? (
-        <ul className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-          {[0, 1, 2, 3, 4, 5].map((row) => (
-            <li
-              key={row}
-              className="aspect-4/3 animate-pulse rounded-2xl border border-border bg-card"
-            />
-          ))}
-        </ul>
+      {isSearching ? (
+        <FileGridSkeleton />
       ) : listQuery.isError ? (
         <ErrorState
           message={apiErrorMessage(listQuery.error, "Please try again.")}
@@ -144,7 +141,7 @@ export function StoredFiles() {
         </ul>
       )}
 
-      {meta && total > 0 && (
+      {!isSearching && meta && total > 0 && (
         <div className="mt-5 flex flex-col items-center justify-between gap-3 sm:flex-row">
           <p className="text-xs text-muted-foreground">
             Showing {from}–{to} of {total}
@@ -279,6 +276,31 @@ function FileTile({
         </button>
       </div>
     </li>
+  );
+}
+
+function FileGridSkeleton() {
+  return (
+    <ul className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+      {Array.from({ length: 8 }, (_, index) => (
+        <li
+          key={index}
+          className="overflow-hidden rounded-2xl border border-border bg-card"
+        >
+          <div className="aspect-4/3 animate-pulse bg-secondary" />
+          <div className="space-y-2 px-3 py-2.5">
+            <div className="h-4 w-4/5 animate-pulse rounded bg-secondary" />
+            <div className="h-3 w-3/5 animate-pulse rounded bg-secondary/80" />
+            <div className="h-3 w-2/5 animate-pulse rounded bg-secondary/80" />
+          </div>
+          <div className="flex items-center justify-end gap-1 border-t border-border/70 px-2 py-1.5">
+            <div className="size-8 animate-pulse rounded-lg bg-secondary/80" />
+            <div className="size-8 animate-pulse rounded-lg bg-secondary/80" />
+            <div className="size-8 animate-pulse rounded-lg bg-secondary/80" />
+          </div>
+        </li>
+      ))}
+    </ul>
   );
 }
 

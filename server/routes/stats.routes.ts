@@ -30,5 +30,12 @@ router.get(
   authorize(Role.ADMIN),
   statsController.adminStats
 );
+router.get(
+  "/admin/history",
+  authenticate,
+  authorize(Role.ADMIN),
+  validate({ query: statsPeriodSchema }),
+  statsController.adminHistory
+);
 
 export default router;

@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { isAdmin, requireUser } from "@/lib/session";
+import { AdminAnalytics } from "@/features/Admin/ui/AdminAnalytics";
 import { AnalyticsDashboard } from "@/features/Analytics/ui/AnalyticsDashboard";
 
 export const metadata: Metadata = {
@@ -6,10 +8,12 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-export default function AnalyticsPage() {
+export default async function AnalyticsPage() {
+  const user = await requireUser();
+
   return (
     <main className="min-w-0 px-4 py-8 sm:px-8">
-      <AnalyticsDashboard />
+      {isAdmin(user) ? <AdminAnalytics /> : <AnalyticsDashboard />}
     </main>
   );
 }

@@ -1,15 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { HardDrive, RefreshCw, Upload } from "lucide-react";
+import { Files, HardDrive, RefreshCw, Users } from "lucide-react";
 import { useTheme } from "next-themes";
 import { cn } from "@/lib/utils";
+import { apiErrorMessage } from "@/features/UploadFiles/services/UploadFiles.services";
 import { formatSize } from "@/features/UploadFiles/utils/format";
-import { useUploadHistory, useUserStats } from "../hooks/useAnalytics";
-import { statsErrorMessage } from "../services/Analytics.services";
-import type { StatsPeriod, UserStats } from "../types/Analytics.types";
-import { groupTypes } from "../utils/chart";
-import { ApexChart } from "./ApexChart";
+import type { StatsPeriod } from "@/features/Analytics/types/Analytics.types";
+import { groupTypes } from "@/features/Analytics/utils/chart";
+import { ApexChart } from "@/features/Analytics/ui/ApexChart";
 import {
   ChartCard,
   ChartsErrorState,
@@ -18,23 +17,29 @@ import {
   EmptyChart,
   Kpi,
   TimeSeriesChart,
-} from "./chart-parts";
+} from "@/features/Analytics/ui/chart-parts";
+import { useAdminHistory, useAdminStats } from "../hooks/useAdmin";
+import type { AdminStats } from "../types/Admin.types";
 
-export function AnalyticsDashboard() {
+/** System-wide analytics. Same layout as the user view, sourced from /stats/admin. */
+export function AdminAnalytics() {
   const { resolvedTheme } = useTheme();
   const isDark = resolvedTheme === "dark";
   const { data, isPending, isError, error, isFetching, refetch } =
-    useUserStats();
+    useAdminStats();
 
   return (
     <section className="mx-auto w-full max-w-6xl">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
+          <span className="inline-flex items-center rounded-full bg-primary/10 px-2.5 py-1 text-[11px] font-semibold tracking-[0.14em] text-primary uppercase">
+            Administrator
+          </span>
+          <h1 className="mt-3 text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
             Analytics
           </h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            How your Gold Cloud workspace has been used.
+            How Gold Cloud is being used across every account.
           </p>
         </div>
         <button
@@ -53,7 +58,7 @@ export function AnalyticsDashboard() {
       ) : isError ? (
         <ChartsErrorState
           title="Could not load analytics"
-          message={statsErrorMessage(error, "Please try again.")}
+          message={apiErrorMessage(error, "Please try again.")}
           onRetry={() => refetch()}
         />
       ) : data ? (
@@ -63,17 +68,22 @@ export function AnalyticsDashboard() {
   );
 }
 
-function Charts({ stats, isDark }: { stats: UserStats; isDark: boolean }) {
-  const types = groupTypes(stats.fileTypes);
+function Charts({ stats, isDark }: { stats: AdminStats; isDark: boolean }) {
+  const types = groupTypes(stats.topFileTypes);
   const emptyTypes = types.length === 0;
 
   return (
     <>
-      <div className="mt-8 grid gap-3 sm:grid-cols-2">
+      <div className="mt-8 grid gap-3 sm:grid-cols-3">
         <Kpi
-          Icon={Upload}
-          label="Total uploaded files"
-          value={String(stats.totalFiles)}
+          Icon={Users}
+          label="Total users"
+          value={stats.totalUsers.toLocaleString()}
+        />
+        <Kpi
+          Icon={Files}
+          label="Total files"
+          value={stats.totalFiles.toLocaleString()}
         />
         <Kpi
           Icon={HardDrive}
@@ -87,7 +97,7 @@ function Charts({ stats, isDark }: { stats: UserStats; isDark: boolean }) {
 
         <ChartCard title="Storage usage" hint="Space used by file type">
           {emptyTypes ? (
-            <EmptyChart />
+            <EmptyChart message="No files have been uploaded yet." />
           ) : (
             <ApexChart
               type="donut"
@@ -102,9 +112,12 @@ function Charts({ stats, isDark }: { stats: UserStats; isDark: boolean }) {
           )}
         </ChartCard>
 
-        <ChartCard title="File types" hint="Count of files by type">
+        <ChartCard
+          title="Most uploaded file types"
+          hint="Count of files by type"
+        >
           {emptyTypes ? (
-            <EmptyChart />
+            <EmptyChart message="No files have been uploaded yet." />
           ) : (
             <ApexChart
               type="donut"
@@ -134,7 +147,7 @@ function PeriodTimeChart({
   isDark: boolean;
 }) {
   const [period, setPeriod] = useState<StatsPeriod>("daily");
-  const { data, isPending, isError, refetch } = useUploadHistory(period);
+  const { data, isPending, isError, refetch } = useAdminHistory(period);
 
   return (
     <TimeSeriesChart

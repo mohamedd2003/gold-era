@@ -19,6 +19,12 @@ export interface PublicFile {
 /**
  * Lighter list projection: excludes the potentially large `extractedContent`.
  */
+export interface FileOwner {
+  id: number;
+  name: string;
+  email: string;
+}
+
 export interface PublicFileListItem {
   id: number;
   originalName: string;
@@ -28,6 +34,7 @@ export interface PublicFileListItem {
   userId: number;
   createdAt: Date;
   updatedAt: Date;
+  owner?: FileOwner;
 }
 
 export function toPublicFile(file: File): PublicFile {
@@ -53,6 +60,7 @@ export function toPublicFileListItem(file: {
   userId: number;
   createdAt: Date;
   updatedAt: Date;
+  user?: FileOwner | null;
 }): PublicFileListItem {
   return {
     id: file.id,
@@ -63,5 +71,6 @@ export function toPublicFileListItem(file: {
     userId: file.userId,
     createdAt: file.createdAt,
     updatedAt: file.updatedAt,
+    ...(file.user ? { owner: file.user } : {}),
   };
 }

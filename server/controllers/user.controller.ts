@@ -1,6 +1,7 @@
 import type { Request, Response } from "express";
 import { catchAsync } from "../utils/catchAsync";
 import { sendSuccess } from "../utils/ApiResponse";
+import { UnauthorizedError } from "../errors/HttpError";
 import { getPagination } from "../utils/pagination";
 import { userService, type UserService } from "../services/user.service";
 import type { ListUsersQuery } from "../validations/user.validation";
@@ -16,14 +17,16 @@ export class UserController {
   });
 
   update = catchAsync(async (req: Request, res: Response) => {
+    if (!req.user) throw new UnauthorizedError("Authentication required");
     const id = Number(req.params.id);
-    const user = await this.service.update(id, req.body);
+    const user = await this.service.update(id, req.body, req.user.id);
     sendSuccess(res, user, "User updated successfully");
   });
 
   remove = catchAsync(async (req: Request, res: Response) => {
+    if (!req.user) throw new UnauthorizedError("Authentication required");
     const id = Number(req.params.id);
-    await this.service.remove(id);
+    await this.service.remove(id, req.user.id);
     sendSuccess(res, null, "User deleted successfully");
   });
 }

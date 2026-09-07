@@ -1,8 +1,13 @@
 import { cookies } from "next/headers";
+import { notFound, redirect } from "next/navigation";
 import { API_URL } from "@/lib/axios";
 import type { ApiSuccess, User } from "@/types";
 
 export type SessionUser = User;
+
+export function isAdmin(user: User | null): boolean {
+  return user?.role === "ADMIN";
+}
 
 export async function getSessionUser(): Promise<User | null> {
   const cookieStore = await cookies();
@@ -22,4 +27,22 @@ export async function getSessionUser(): Promise<User | null> {
   } catch {
     return null;
   }
+}
+
+/** Signed-in gate for dashboard pages. */
+export async function requireUser(): Promise<User> {
+  const user = await getSessionUser();
+  if (!user) redirect("/login");
+  return user;
+}
+
+/**
+ * Admin gate for pages. Non-admins get a 404 rather than a redirect so the
+ * existence of the admin area is not advertised. Express enforces the same
+ * rule on every underlying endpoint.
+ */
+export async function requireAdmin(): Promise<User> {
+  const user = await requireUser();
+  if (!isAdmin(user)) notFound();
+  return user;
 }

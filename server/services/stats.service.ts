@@ -46,6 +46,13 @@ export class StatsService {
     return { period, history };
   }
 
+  async historyForAdmin(
+    period: StatsPeriod
+  ): Promise<{ period: StatsPeriod; history: HistoryPoint[] }> {
+    const history = await this.repo.uploadHistory(undefined, period);
+    return { period, history };
+  }
+
   async forAdmin(): Promise<AdminStats> {
     const [totalUsers, totalFiles, storageUsageBytes, topFileTypes, recentUploads] =
       await Promise.all([

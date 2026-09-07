@@ -9,6 +9,11 @@ export const listFilesQuerySchema = z.object({
   search: z.preprocess(emptyToUndefined, z.string().trim().max(255).optional()),
   // Matches against mimetype, e.g. "image", "pdf", "text".
   type: z.preprocess(emptyToUndefined, z.string().trim().max(150).optional()),
+  // Admin-only filter; ignored for regular users, who are always scoped to self.
+  userId: z.preprocess(
+    emptyToUndefined,
+    z.coerce.number().int().positive().optional()
+  ),
   sortBy: z.enum(["createdAt", "size", "originalName"]).default("createdAt"),
   order: z.enum(["asc", "desc"]).default("desc"),
 });

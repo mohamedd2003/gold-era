@@ -25,6 +25,12 @@ export class StatsController {
     const stats = await this.service.forAdmin();
     sendSuccess(res, stats, "System statistics fetched successfully");
   });
+
+  adminHistory = catchAsync(async (req: Request, res: Response) => {
+    const period = (req.validatedQuery as { period: StatsPeriod }).period;
+    const history = await this.service.historyForAdmin(period);
+    sendSuccess(res, history, "System upload history fetched successfully");
+  });
 }
 
 export const statsController = new StatsController();

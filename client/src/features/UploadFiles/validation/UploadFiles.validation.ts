@@ -28,6 +28,8 @@ export const listFilesParamsSchema = z.object({
   search: z.string().trim().max(255).optional(),
   /** Matched against the mimetype, e.g. "image", "pdf". */
   type: z.string().trim().max(150).optional(),
+  /** Admin-only owner filter; the server ignores it for regular users. */
+  userId: z.coerce.number().int().positive().optional(),
   sortBy: z.enum(["createdAt", "size", "originalName"]).default("createdAt"),
   order: z.enum(["asc", "desc"]).default("desc"),
 });
