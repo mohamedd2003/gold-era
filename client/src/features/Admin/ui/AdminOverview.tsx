@@ -12,7 +12,11 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { apiErrorMessage, fileUrl } from "@/features/UploadFiles/services/UploadFiles.services";
-import { formatDateTime, formatSize } from "@/features/UploadFiles/utils/format";
+import {
+  formatDate,
+  formatDateTime,
+  formatSize,
+} from "@/features/UploadFiles/utils/format";
 import { FileTypeIcon } from "@/features/UploadFiles/ui/FileTypeIcon";
 import { groupTypes, typeLabel } from "@/features/Analytics/utils/chart";
 import { ChartsErrorState } from "@/features/Analytics/ui/chart-parts";
@@ -24,7 +28,7 @@ export function AdminOverview({ name }: { name: string }) {
     useAdminStats();
 
   return (
-    <section className="mx-auto w-full max-w-6xl">
+    <section className="mx-auto w-full min-w-0 max-w-6xl">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <span className="inline-flex items-center rounded-full bg-primary/10 px-2.5 py-1 text-[11px] font-semibold tracking-[0.14em] text-primary uppercase">
@@ -88,7 +92,7 @@ function Content({ stats }: { stats: AdminStats }) {
         />
       </div>
 
-      <div className="mt-4 grid gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]">
+      <div className="mt-4 grid min-w-0 gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]">
         <TopFileTypes stats={stats} />
         <RecentUploads uploads={stats.recentUploads} />
       </div>
@@ -140,7 +144,7 @@ function TopFileTypes({ stats }: { stats: AdminStats }) {
   const max = types[0]?.count ?? 0;
 
   return (
-    <article className="rounded-2xl border border-border bg-card p-4 shadow-sm sm:p-5">
+    <article className="min-w-0 overflow-hidden rounded-2xl border border-border bg-card p-4 shadow-sm sm:p-5">
       <h2 className="text-sm font-semibold text-foreground">
         Most uploaded file types
       </h2>
@@ -155,18 +159,18 @@ function TopFileTypes({ stats }: { stats: AdminStats }) {
       ) : (
         <ul className="mt-5 space-y-4">
           {types.map((type) => (
-            <li key={type.mimetype}>
-              <div className="flex items-baseline justify-between gap-3 text-sm">
-                <span className="truncate font-medium text-foreground">
+            <li key={type.mimetype} className="min-w-0">
+              <div className="flex min-w-0 flex-wrap items-baseline justify-between gap-x-2 gap-y-0.5 text-sm">
+                <span className="min-w-0 truncate font-medium text-foreground">
                   {typeLabel(type.mimetype)}
                 </span>
-                <span className="shrink-0 text-xs text-muted-foreground">
+                <span className="shrink-0 text-xs tabular-nums text-muted-foreground">
                   {type.count} · {formatSize(type.bytes)}
                 </span>
               </div>
-              <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-secondary">
+              <div className="mt-1.5 h-2 min-w-0 overflow-hidden rounded-full bg-secondary">
                 <div
-                  className="h-full rounded-full bg-primary transition-[width] duration-500"
+                  className="h-full max-w-full rounded-full bg-primary transition-[width] duration-500"
                   style={{
                     width: `${max === 0 ? 0 : Math.max(4, (type.count / max) * 100)}%`,
                   }}
@@ -182,9 +186,9 @@ function TopFileTypes({ stats }: { stats: AdminStats }) {
 
 function RecentUploads({ uploads }: { uploads: RecentUpload[] }) {
   return (
-    <article className="rounded-2xl border border-border bg-card p-4 shadow-sm sm:p-5">
-      <div className="flex items-start justify-between gap-3">
-        <div>
+    <article className="min-w-0 overflow-hidden rounded-2xl border border-border bg-card p-4 shadow-sm sm:p-5">
+      <div className="flex min-w-0 items-start justify-between gap-2">
+        <div className="min-w-0">
           <h2 className="text-sm font-semibold text-foreground">
             Recent uploads
           </h2>
@@ -194,7 +198,7 @@ function RecentUploads({ uploads }: { uploads: RecentUpload[] }) {
         </div>
         <Link
           href="/dashboard/files"
-          className="inline-flex shrink-0 items-center gap-1 text-xs font-medium text-primary transition-colors hover:underline"
+          className="inline-flex shrink-0 items-center gap-1 pt-0.5 text-xs font-medium text-primary transition-colors hover:underline"
         >
           View all
           <ArrowRight className="size-3.5" />
@@ -209,7 +213,7 @@ function RecentUploads({ uploads }: { uploads: RecentUpload[] }) {
       ) : (
         <ul className="mt-4 divide-y divide-border/70">
           {uploads.map((upload) => (
-            <li key={upload.id} className="flex items-center gap-3 py-2.5">
+            <li key={upload.id} className="flex min-w-0 items-start gap-2.5 py-2.5 sm:items-center sm:gap-3">
               <span className="inline-flex size-9 shrink-0 items-center justify-center rounded-xl bg-secondary text-primary">
                 <FileTypeIcon
                   mimetype={upload.mimetype}
@@ -222,8 +226,15 @@ function RecentUploads({ uploads }: { uploads: RecentUpload[] }) {
                   {upload.originalName}
                 </p>
                 <p className="truncate text-xs text-muted-foreground">
-                  {upload.user.name} · {formatSize(upload.size)} ·{" "}
-                  {formatDateTime(upload.createdAt)}
+                  {upload.user.name}
+                </p>
+                <p className="truncate text-xs text-muted-foreground">
+                  {formatSize(upload.size)}
+                  <span className="sm:hidden"> · {formatDate(upload.createdAt)}</span>
+                  <span className="hidden sm:inline">
+                    {" "}
+                    · {formatDateTime(upload.createdAt)}
+                  </span>
                 </p>
               </div>
               <a
