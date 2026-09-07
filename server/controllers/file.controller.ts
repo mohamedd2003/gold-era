@@ -31,6 +31,31 @@ export class FileController {
     sendSuccess(res, file, "File fetched successfully");
   });
 
+  /**
+   * Streams the raw file back. `?download=1` forces a save dialog, otherwise
+   * the browser renders it inline (images, PDFs, text...).
+   */
+  download = catchAsync(async (req: Request, res: Response) => {
+    if (!req.user) throw new UnauthorizedError("Authentication required");
+    const id = Number(req.params.id);
+    const { absolutePath, mimetype, originalName } =
+      await this.service.getStorageTarget(req.user, id);
+
+    const disposition = req.query.download === "1" ? "attachment" : "inline";
+    const asciiName = originalName.replace(/["\\]/g, "");
+    res.setHeader("Content-Type", mimetype);
+    res.setHeader(
+      "Content-Disposition",
+      `${disposition}; filename="${asciiName}"; filename*=UTF-8''${encodeURIComponent(originalName)}`
+    );
+
+    await new Promise<void>((resolve, reject) => {
+      res.sendFile(absolutePath, (error) =>
+        error ? reject(error) : resolve()
+      );
+    });
+  });
+
   remove = catchAsync(async (req: Request, res: Response) => {
     if (!req.user) throw new UnauthorizedError("Authentication required");
     const id = Number(req.params.id);

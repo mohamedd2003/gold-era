@@ -1,4 +1,5 @@
 import fs from "node:fs/promises";
+import path from "node:path";
 import {
   BadRequestError,
   ForbiddenError,
@@ -111,6 +112,31 @@ export class FileService {
   async getById(user: AuthenticatedUser, id: number): Promise<PublicFile> {
     const file = await this.findAccessible(user, id);
     return toPublicFile(file);
+  }
+
+  /**
+   * Resolves the on-disk location of a file so it can be streamed back to the
+   * owner (or an admin). Kept separate from `getById` because the absolute
+   * path must never leak into a JSON response.
+   */
+  async getStorageTarget(
+    user: AuthenticatedUser,
+    id: number
+  ): Promise<{ absolutePath: string; mimetype: string; originalName: string }> {
+    const file = await this.findAccessible(user, id);
+    const absolutePath = path.resolve(file.path);
+
+    try {
+      await fs.access(absolutePath);
+    } catch {
+      throw new NotFoundError("File is no longer available on the server");
+    }
+
+    return {
+      absolutePath,
+      mimetype: file.mimetype,
+      originalName: file.originalName,
+    };
   }
 
   async remove(user: AuthenticatedUser, id: number): Promise<void> {

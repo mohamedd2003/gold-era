@@ -16,6 +16,7 @@ router.use(authenticate, requireVerified);
 router.post("/upload", upload.single("file"), fileController.upload);
 router.get("/", validate({ query: listFilesQuerySchema }), fileController.list);
 router.get("/:id",validate({ params: fileIdParamSchema }),fileController.getOne);
+router.get("/:id/download",validate({ params: fileIdParamSchema }),fileController.download);
 router.delete("/:id",validate({ params: fileIdParamSchema }),fileController.remove);
 
 export default router;
