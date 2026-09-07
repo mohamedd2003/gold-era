@@ -5,7 +5,6 @@ import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import {
   BarChart,
-  Clock,
   Folder,
   PanelLeftClose,
   PanelLeftOpen,
@@ -19,8 +18,7 @@ const STORAGE_KEY = "gold-era-sidebar-collapsed";
 
 const libraryItems = [
   { id: "all", label: "All Files", href: "/dashboard", Icon: Folder },
-  { id: "analytics", label: "Analytics", href: "/dashboard", Icon: BarChart },
-  
+  { id: "analytics", label: "Analytics", href: "/dashboard/analytics", Icon: BarChart },
 ] as const;
 
 export type DashboardView = (typeof libraryItems)[number]["id"];
@@ -39,9 +37,11 @@ export function DashboardSidebar({
     (item) => item.id === viewParam
   )
     ? (viewParam as DashboardView)
-    : pathname === "/dashboard"
-      ? "all"
-      : undefined;
+    : pathname === "/dashboard/analytics"
+      ? "analytics"
+      : pathname === "/dashboard"
+        ? "all"
+        : undefined;
   const active = activeProp ?? activeFromUrl;
 
   useEffect(() => {

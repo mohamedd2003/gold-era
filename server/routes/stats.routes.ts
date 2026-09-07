@@ -5,7 +5,9 @@ import {
   requireVerified,
 } from "../middlewares/auth.middleware";
 import { Role } from "../generated/prisma/client";
+import { validate } from "../middlewares/validate.middleware";
 import { statsController } from "../controllers/stats.controller";
+import { statsPeriodSchema } from "../validations/stats.validation";
 
 const router = Router();
 
@@ -14,6 +16,13 @@ router.get(
   authenticate,
   requireVerified,
   statsController.userStats
+);
+router.get(
+  "/user/history",
+  authenticate,
+  requireVerified,
+  validate({ query: statsPeriodSchema }),
+  statsController.userHistory
 );
 router.get(
   "/admin",

@@ -1,7 +1,7 @@
 "use server";
 
 import { cookies } from "next/headers";
-import { API_URL } from "@/lib/axios";
+import { API_URL, missingApiUrlMessage } from "@/lib/axios";
 import type { ApiError, ApiSuccess } from "@/types";
 import { loginSchema, type LoginInput } from "../validation/login.valdation";
 import type { LoginData, LoginState } from "../types/Login.types";
@@ -23,6 +23,10 @@ export async function loginAction(values: LoginInput): Promise<LoginState> {
       status: "error",
       message: parsed.error.issues[0]?.message ?? "Invalid credentials.",
     };
+  }
+
+  if (!API_URL) {
+    return { status: "error", message: missingApiUrlMessage() };
   }
 
   let body: ApiSuccess<LoginData> | ApiError | null = null;

@@ -5,6 +5,7 @@ import {
   type MimetypeGroup,
   type RecentUpload,
 } from "../repositories/stats.repository";
+import { type StatsPeriod } from "../validations/stats.validation";
 
 export interface UserStats {
   totalFiles: number;
@@ -31,10 +32,18 @@ export class StatsService {
         this.repo.countFiles(where),
         this.repo.totalStorage(where),
         this.repo.mimetypeDistribution(where),
-        this.repo.uploadHistory(userId),
+        this.repo.uploadHistory(userId, "daily"),
       ]);
 
     return { totalFiles, storageUsageBytes, fileTypes, uploadHistory };
+  }
+
+  async historyForUser(
+    userId: number,
+    period: StatsPeriod
+  ): Promise<{ period: StatsPeriod; history: HistoryPoint[] }> {
+    const history = await this.repo.uploadHistory(userId, period);
+    return { period, history };
   }
 
   async forAdmin(): Promise<AdminStats> {

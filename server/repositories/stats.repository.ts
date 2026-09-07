@@ -60,32 +60,55 @@ export class StatsRepository extends BaseRepository {
   }
 
   /**
-   * Per-day upload counts and bytes for the last 30 days.
+   * Upload counts and bytes grouped by the selected period.
+   * hourly → last 24 hours, daily → last 30 days,
+   * monthly → last 12 months, yearly → last 5 years.
    */
-  async uploadHistory(userId?: number): Promise<HistoryPoint[]> {
+  async uploadHistory(
+    userId: number | undefined,
+    period: "hourly" | "daily" | "monthly" | "yearly" = "daily"
+  ): Promise<HistoryPoint[]> {
+    const bucket =
+      period === "hourly"
+        ? Prisma.sql`DATE_FORMAT(createdAt, '%Y-%m-%d %H:00')`
+        : period === "monthly"
+          ? Prisma.sql`DATE_FORMAT(createdAt, '%Y-%m')`
+          : period === "yearly"
+            ? Prisma.sql`DATE_FORMAT(createdAt, '%Y')`
+            : Prisma.sql`DATE_FORMAT(createdAt, '%Y-%m-%d')`;
+
+    const since =
+      period === "hourly"
+        ? Prisma.sql`NOW() - INTERVAL 24 HOUR`
+        : period === "monthly"
+          ? Prisma.sql`NOW() - INTERVAL 12 MONTH`
+          : period === "yearly"
+            ? Prisma.sql`NOW() - INTERVAL 5 YEAR`
+            : Prisma.sql`NOW() - INTERVAL 30 DAY`;
+
     const rows = await this.prisma.$queryRaw<
       Array<{ date: Date | string; count: bigint; bytes: bigint | null }>
     >(
       userId === undefined
         ? Prisma.sql`
-            SELECT DATE(createdAt) AS date, COUNT(*) AS count, COALESCE(SUM(size), 0) AS bytes
+            SELECT ${bucket} AS date, COUNT(*) AS count, COALESCE(SUM(size), 0) AS bytes
             FROM files
-            WHERE createdAt >= (NOW() - INTERVAL 30 DAY)
-            GROUP BY DATE(createdAt)
-            ORDER BY date DESC`
+            WHERE createdAt >= ${since}
+            GROUP BY date
+            ORDER BY date ASC`
         : Prisma.sql`
-            SELECT DATE(createdAt) AS date, COUNT(*) AS count, COALESCE(SUM(size), 0) AS bytes
+            SELECT ${bucket} AS date, COUNT(*) AS count, COALESCE(SUM(size), 0) AS bytes
             FROM files
-            WHERE userId = ${userId} AND createdAt >= (NOW() - INTERVAL 30 DAY)
-            GROUP BY DATE(createdAt)
-            ORDER BY date DESC`
+            WHERE userId = ${userId} AND createdAt >= ${since}
+            GROUP BY date
+            ORDER BY date ASC`
     );
 
     return rows.map((row) => ({
       date:
         row.date instanceof Date
-          ? row.date.toISOString().slice(0, 10)
-          : String(row.date).slice(0, 10),
+          ? row.date.toISOString().slice(0, 13).replace("T", " ")
+          : String(row.date),
       count: Number(row.count),
       bytes: Number(row.bytes ?? 0),
     }));
