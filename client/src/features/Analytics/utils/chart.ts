@@ -54,35 +54,94 @@ export function groupTypes(types: FileTypeStat[]): FileTypeStat[] {
   return [...buckets.values()].sort((a, b) => b.count - a.count);
 }
 
-/** Fill missing days so the last 30 days are a continuous series. */
-export function last30Days(history: HistoryPoint[]): HistoryPoint[] {
-  const byDay = new Map(
-    history.map((point) => [point.date.slice(0, 10), point])
-  );
-  const days: HistoryPoint[] = [];
+const MONTHS = [
+  "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+  "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+];
 
-  for (let offset = 29; offset >= 0; offset -= 1) {
-    const date = new Date();
-    date.setHours(0, 0, 0, 0);
-    date.setDate(date.getDate() - offset);
-    const key = [
-      date.getFullYear(),
-      String(date.getMonth() + 1).padStart(2, "0"),
-      String(date.getDate()).padStart(2, "0"),
-    ].join("-");
-    days.push(byDay.get(key) ?? { date: key, count: 0, bytes: 0 });
-  }
-
-  return days;
+function pad(value: number) {
+  return String(value).padStart(2, "0");
 }
 
-export function formatDay(value: string): string {
+function historyKey(date: Date, period: StatsPeriod): string {
+  const year = date.getFullYear();
+  const month = pad(date.getMonth() + 1);
+  const day = pad(date.getDate());
+  const hour = pad(date.getHours());
+  if (period === "hourly") return `${year}-${month}-${day} ${hour}:00`;
+  if (period === "monthly") return `${year}-${month}`;
+  if (period === "yearly") return String(year);
+  return `${year}-${month}-${day}`;
+}
+
+/** Fill empty buckets so the selected period is a continuous series. */
+export function fillHistory(
+  history: HistoryPoint[],
+  period: StatsPeriod
+): HistoryPoint[] {
+  const byKey = new Map(history.map((point) => [point.date.trim(), point]));
+  const points: HistoryPoint[] = [];
+  const cursor = new Date();
+
+  if (period === "hourly") {
+    cursor.setMinutes(0, 0, 0);
+    for (let offset = 6; offset >= 0; offset -= 1) {
+      const date = new Date(cursor);
+      date.setHours(cursor.getHours() - offset);
+      const key = historyKey(date, period);
+      points.push(byKey.get(key) ?? { date: key, count: 0, bytes: 0 });
+    }
+    return points;
+  }
+
+  if (period === "monthly") {
+    cursor.setDate(1);
+    cursor.setHours(0, 0, 0, 0);
+    for (let offset = 11; offset >= 0; offset -= 1) {
+      const date = new Date(cursor);
+      date.setMonth(cursor.getMonth() - offset);
+      const key = historyKey(date, period);
+      points.push(byKey.get(key) ?? { date: key, count: 0, bytes: 0 });
+    }
+    return points;
+  }
+
+  if (period === "yearly") {
+    cursor.setMonth(0, 1);
+    cursor.setHours(0, 0, 0, 0);
+    for (let offset = 4; offset >= 0; offset -= 1) {
+      const date = new Date(cursor);
+      date.setFullYear(cursor.getFullYear() - offset);
+      const key = historyKey(date, period);
+      points.push(byKey.get(key) ?? { date: key, count: 0, bytes: 0 });
+    }
+    return points;
+  }
+
+  cursor.setHours(0, 0, 0, 0);
+  for (let offset = 6; offset >= 0; offset -= 1) {
+    const date = new Date(cursor);
+    date.setDate(cursor.getDate() - offset);
+    const key = historyKey(date, "daily");
+    points.push(byKey.get(key) ?? { date: key, count: 0, bytes: 0 });
+  }
+  return points;
+}
+
+export function formatHistoryLabel(value: string, period: StatsPeriod): string {
+  if (period === "hourly") {
+    const hour = Number(value.slice(11, 13));
+    const suffix = hour >= 12 ? "PM" : "AM";
+    const hour12 = hour % 12 || 12;
+    return `${hour12} ${suffix}`;
+  }
+  if (period === "monthly") {
+    const [year, month] = value.split("-");
+    return `${MONTHS[Number(month) - 1]} ${year}`;
+  }
+  if (period === "yearly") return value;
   const [, month, day] = value.split("-");
-  const months = [
-    "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
-  ];
-  return `${months[Number(month) - 1]} ${Number(day)}`;
+  return `${MONTHS[Number(month) - 1]} ${Number(day)}`;
 }
 
 export function baseOptions(isDark: boolean): ApexOptions {
@@ -99,4 +158,6 @@ export function baseOptions(isDark: boolean): ApexOptions {
     legend: { labels: { colors: theme.muted } },
     dataLabels: { enabled: false },
     tooltip: { theme: isDark ? "dark" : "light" },
-    stroke: { curve
+    stroke: { curve: "smooth" },
+  };
+}

@@ -11,10 +11,10 @@ export function periodSince(period: StatsPeriod): Date {
   const since = new Date();
   switch (period) {
     case "hourly":
-      since.setHours(since.getHours() - 24);
+      since.setHours(since.getHours() - 7);
       break;
     case "daily":
-      since.setDate(since.getDate() - 30);
+      since.setDate(since.getDate() - 7);
       break;
     case "monthly":
       since.setMonth(since.getMonth() - 12);

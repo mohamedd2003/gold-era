@@ -61,7 +61,7 @@ export class StatsRepository extends BaseRepository {
 
   /**
    * Upload counts and bytes grouped by the selected period.
-   * hourly → last 24 hours, daily → last 30 days,
+   * hourly → last 7 hours, daily → last 7 days,
    * monthly → last 12 months, yearly → last 5 years.
    */
   async uploadHistory(
@@ -79,12 +79,12 @@ export class StatsRepository extends BaseRepository {
 
     const since =
       period === "hourly"
-        ? Prisma.sql`NOW() - INTERVAL 24 HOUR`
+        ? Prisma.sql`NOW() - INTERVAL 7 HOUR`
         : period === "monthly"
           ? Prisma.sql`NOW() - INTERVAL 12 MONTH`
           : period === "yearly"
             ? Prisma.sql`NOW() - INTERVAL 5 YEAR`
-            : Prisma.sql`NOW() - INTERVAL 30 DAY`;
+            : Prisma.sql`NOW() - INTERVAL 7 DAY`;
 
     const rows = await this.prisma.$queryRaw<
       Array<{ date: Date | string; count: bigint; bytes: bigint | null }>
@@ -94,13 +94,13 @@ export class StatsRepository extends BaseRepository {
             SELECT ${bucket} AS date, COUNT(*) AS count, COALESCE(SUM(size), 0) AS bytes
             FROM files
             WHERE createdAt >= ${since}
-            GROUP BY date
+            GROUP BY ${bucket}
             ORDER BY date ASC`
         : Prisma.sql`
             SELECT ${bucket} AS date, COUNT(*) AS count, COALESCE(SUM(size), 0) AS bytes
             FROM files
             WHERE userId = ${userId} AND createdAt >= ${since}
-            GROUP BY date
+            GROUP BY ${bucket}
             ORDER BY date ASC`
     );
 

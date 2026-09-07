@@ -6,16 +6,16 @@ import { CircleAlert, HardDrive, RefreshCw, Upload } from "lucide-react";
 import { useTheme } from "next-themes";
 import { cn } from "@/lib/utils";
 import { formatSize } from "@/features/UploadFiles/utils/format";
-import { useTypeBreakdown, useUserStats } from "../hooks/useAnalytics";
+import { useUploadHistory, useUserStats } from "../hooks/useAnalytics";
 import { statsErrorMessage } from "../services/Analytics.services";
 import type { StatsPeriod } from "../types/Analytics.types";
 import { STATS_PERIODS } from "../types/Analytics.types";
 import {
   baseOptions,
   chartTheme,
-  formatDay,
+  fillHistory,
+  formatHistoryLabel,
   groupTypes,
-  last30Days,
 } from "../utils/chart";
 import { ApexChart } from "./ApexChart";
 
@@ -75,10 +75,8 @@ function Charts({
   stats: NonNullable<ReturnType<typeof useUserStats>["data"]>;
   isDark: boolean;
 }) {
-  const theme = chartTheme(isDark);
-  const history = last30Days(stats.uploadHistory);
-  const historyLabels = history.map((point) => formatDay(point.date));
-  const empty = stats.totalFiles === 0;
+  const types = groupTypes(stats.fileTypes);
+  const emptyTypes = types.length === 0;
 
   return (
     <>
@@ -96,120 +94,72 @@ function Charts({
       </div>
 
       <div className="mt-4 grid gap-4 lg:grid-cols-2">
-        <ChartCard title="Total uploaded files" hint="Uploads per day · last 30 days">
-          {empty ? (
+        <PeriodTimeChart
+          title="Total uploaded files"
+          kind="bar"
+          isDark={isDark}
+        />
+
+        <ChartCard title="Storage usage" hint="Space used by file type">
+          {emptyTypes ? (
             <EmptyChart />
           ) : (
             <ApexChart
-              type="bar"
+              type="donut"
               height={280}
-              series={[{ name: "Files", data: history.map((point) => point.count) }]}
-              options={{
-                ...baseOptions(isDark),
-                plotOptions: {
-                  bar: { borderRadius: 6, columnWidth: "55%" },
-                },
-                xaxis: {
-                  categories: historyLabels,
-                  labels: { rotate: -45, style: { colors: theme.muted } },
-                  axisBorder: { show: false },
-                  axisTicks: { show: false },
-                },
-                yaxis: {
-                  min: 0,
-                  forceNiceScale: true,
-                  labels: { style: { colors: theme.muted } },
-                },
-              }}
+              series={types.map((item) => item.bytes)}
+              options={donutOptions(
+                isDark,
+                types.map((item) => item.mimetype),
+                (value) => formatSize(Number(value))
+              )}
             />
           )}
         </ChartCard>
 
-        <PeriodDonut
-          title="Storage usage"
-          metric="bytes"
-          isDark={isDark}
-        />
-
-        <PeriodDonut
-          title="File types"
-          metric="count"
-          isDark={isDark}
-        />
-
-        <ChartCard title="Upload history" hint="Files and storage added each day">
-          {empty ? (
+        <ChartCard title="File types" hint="Count of files by type">
+          {emptyTypes ? (
             <EmptyChart />
           ) : (
             <ApexChart
-              type="area"
+              type="donut"
               height={280}
-              series={[
-                { name: "Files", data: history.map((point) => point.count) },
-                {
-                  name: "Storage (KB)",
-                  data: history.map((point) =>
-                    Math.round(point.bytes / 1024)
-                  ),
-                },
-              ]}
-              options={{
-                ...baseOptions(isDark),
-                fill: {
-                  type: "gradient",
-                  gradient: { opacityFrom: 0.35, opacityTo: 0.02 },
-                },
-                stroke: { curve: "smooth", width: 2 },
-                xaxis: {
-                  categories: historyLabels,
-                  labels: { rotate: -45, style: { colors: theme.muted } },
-                  axisBorder: { show: false },
-                  axisTicks: { show: false },
-                },
-                yaxis: [
-                  {
-                    min: 0,
-                    forceNiceScale: true,
-                    labels: { style: { colors: theme.muted } },
-                    title: { text: "Files", style: { color: theme.muted } },
-                  },
-                  {
-                    opposite: true,
-                    min: 0,
-                    forceNiceScale: true,
-                    labels: { style: { colors: theme.muted } },
-                    title: {
-                      text: "KB",
-                      style: { color: theme.muted },
-                    },
-                  },
-                ],
-              }}
+              series={types.map((item) => item.count)}
+              options={donutOptions(
+                isDark,
+                types.map((item) => item.mimetype)
+              )}
             />
           )}
         </ChartCard>
+
+        <PeriodTimeChart
+          title="Upload history"
+          kind="area"
+          isDark={isDark}
+        />
       </div>
     </>
   );
 }
 
-function PeriodDonut({
+function PeriodTimeChart({
   title,
-  metric,
+  kind,
   isDark,
 }: {
   title: string;
-  metric: "bytes" | "count";
+  kind: "bar" | "area";
   isDark: boolean;
 }) {
   const [period, setPeriod] = useState<StatsPeriod>("daily");
-  const { data, isPending, isError, refetch } = useTypeBreakdown(period);
-  const types = groupTypes(data?.fileTypes ?? []);
+  const { data, isPending, isError, refetch } = useUploadHistory(period);
+  const history = fillHistory(data?.history ?? [], period);
+  const labels = history.map((point) => formatHistoryLabel(point.date, period));
+  const theme = chartTheme(isDark);
   const hint =
     STATS_PERIODS.find((item) => item.value === period)?.hint ??
-    (metric === "bytes"
-      ? "Space used by file type"
-      : "Count of files by type");
+    (kind === "bar" ? "Uploads over time" : "Files and storage over time");
 
   return (
     <ChartCard
@@ -230,20 +180,69 @@ function PeriodDonut({
             Try again
           </button>
         </div>
-      ) : types.length === 0 ? (
-        <EmptyChart />
       ) : (
         <ApexChart
-          type="donut"
+          key={`${kind}-${period}`}
+          type={kind}
           height={280}
-          series={types.map((item) =>
-            metric === "bytes" ? item.bytes : item.count
-          )}
-          options={donutOptions(
-            isDark,
-            types.map((item) => item.mimetype),
-            metric === "bytes" ? (value) => formatSize(Number(value)) : undefined
-          )}
+          series={
+            kind === "bar"
+              ? [{ name: "Files", data: history.map((point) => point.count) }]
+              : [
+                  { name: "Files", data: history.map((point) => point.count) },
+                  {
+                    name: "Storage (KB)",
+                    data: history.map((point) =>
+                      Math.round(point.bytes / 1024)
+                    ),
+                  },
+                ]
+          }
+          options={{
+            ...baseOptions(isDark),
+            plotOptions: {
+              bar: { borderRadius: 6, columnWidth: "55%" },
+            },
+            fill:
+              kind === "area"
+                ? {
+                    type: "gradient",
+                    gradient: { opacityFrom: 0.35, opacityTo: 0.02 },
+                  }
+                : { type: "solid", opacity: 1 },
+            stroke:
+              kind === "area"
+                ? { curve: "smooth", width: 2 }
+                : { show: true, width: 0, curve: "smooth" },
+            xaxis: {
+              categories: labels,
+              labels: { rotate: -45, style: { colors: theme.muted } },
+              axisBorder: { show: false },
+              axisTicks: { show: false },
+            },
+            yaxis:
+              kind === "bar"
+                ? {
+                    min: 0,
+                    forceNiceScale: true,
+                    labels: { style: { colors: theme.muted } },
+                  }
+                : [
+                    {
+                      min: 0,
+                      forceNiceScale: true,
+                      labels: { style: { colors: theme.muted } },
+                      title: { text: "Files", style: { color: theme.muted } },
+                    },
+                    {
+                      opposite: true,
+                      min: 0,
+                      forceNiceScale: true,
+                      labels: { style: { colors: theme.muted } },
+                      title: { text: "KB", style: { color: theme.muted } },
+                    },
+                  ],
+          }}
         />
       )}
     </ChartCard>
