@@ -7,6 +7,7 @@ import { logoutAction } from "@/app/dashboard/logout.action";
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
@@ -39,29 +40,35 @@ export function UserMenu({
         {initial}
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56 min-w-56">
-        <DropdownMenuLabel className="px-2 py-1.5">
-          <p className="truncate text-sm font-semibold text-foreground">{name}</p>
-          {email && (
-            <p className="truncate text-xs font-normal text-muted-foreground">
-              {email}
+        <DropdownMenuGroup>
+          <DropdownMenuLabel className="px-2 py-1.5">
+            <p className="truncate text-sm font-semibold text-foreground">
+              {name}
             </p>
-          )}
-        </DropdownMenuLabel>
+            {email && (
+              <p className="truncate text-xs font-normal text-muted-foreground">
+                {email}
+              </p>
+            )}
+          </DropdownMenuLabel>
+        </DropdownMenuGroup>
         <DropdownMenuSeparator />
-        <DropdownMenuItem render={<Link href="/dashboard/profile" />}>
-          <UserRound className="size-4" />
-          Profile
-        </DropdownMenuItem>
-        {!onDashboard && (
-          <DropdownMenuItem render={<Link href="/dashboard" />}>
-            <LayoutDashboard className="size-4" />
-            Dashboard
+        <DropdownMenuGroup>
+          <DropdownMenuItem render={<Link href="/dashboard/profile" />}>
+            <UserRound className="size-4" />
+            Profile
           </DropdownMenuItem>
-        )}
-        <DropdownMenuItem onClick={() => void logoutAction()}>
-          <LogOut className="size-4" />
-          Sign out
-        </DropdownMenuItem>
+          {!onDashboard && (
+            <DropdownMenuItem render={<Link href="/dashboard" />}>
+              <LayoutDashboard className="size-4" />
+              Dashboard
+            </DropdownMenuItem>
+          )}
+          <DropdownMenuItem onClick={() => void logoutAction()}>
+            <LogOut className="size-4" />
+            Sign out
+          </DropdownMenuItem>
+        </DropdownMenuGroup>
       </DropdownMenuContent>
     </DropdownMenu>
   );
